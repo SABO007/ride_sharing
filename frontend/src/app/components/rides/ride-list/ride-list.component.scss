@@ -1,0 +1,49 @@
+:host {
+  display: block;
+}
+
+.mat-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.mat-card-header {
+  margin-bottom: 1rem;
+}
+
+.mat-card-title {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.mat-card-subtitle {
+  color: var(--secondary-color);
+}
+
+.mat-card-content {
+  i {
+    color: var(--primary-color);
+    width: 20px;
+  }
+}
+
+.mat-card-actions {
+  padding: 1rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.search-section {
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.empty-state {
+  i {
+    color: var(--secondary-color);
+  }
+} 

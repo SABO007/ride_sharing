@@ -1,0 +1,53 @@
+import 'zone.js/node';
+import { APP_BASE_HREF } from '@angular/common';
+import { renderApplication } from '@angular/platform-server';
+import { AppComponent } from './app/app.component';
+import { provideRouter } from '@angular/router';
+import { routes } from './app/app.routes';
+import express from 'express';
+import { fileURLToPath } from 'node:url';
+import { dirname, join, resolve } from 'node:path';
+import { provideClientHydration } from '@angular/platform-browser';
+import { ApplicationConfig } from '@angular/core';
+import { bootstrapApplication } from '@angular/platform-browser';
+
+const app = express();
+const serverDistFolder = dirname(fileURLToPath(import.meta.url));
+const browserDistFolder = resolve(serverDistFolder, '../browser');
+const indexHtml = join(serverDistFolder, 'index.html');
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideRouter(routes),
+    provideClientHydration(),
+    { provide: APP_BASE_HREF, useValue: '/' }
+  ]
+};
+
+// Serve static files from /browser
+app.use(express.static(browserDistFolder, {
+  maxAge: '1y'
+}));
+
+// Create a request handler for SSR
+export const reqHandler = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  const { protocol, originalUrl, baseUrl, headers } = req;
+
+  renderApplication(
+    () => bootstrapApplication(AppComponent, appConfig),
+    {
+      document: indexHtml,
+      url: `${protocol}://${headers.host}${originalUrl}`,
+      platformProviders: [
+        { provide: APP_BASE_HREF, useValue: baseUrl },
+      ]
+    }
+  )
+    .then((html: string) => res.send(html))
+    .catch((err: Error) => next(err));
+};
+
+// Use the request handler for all routes
+app.get('*', reqHandler);
+
+export default app; 

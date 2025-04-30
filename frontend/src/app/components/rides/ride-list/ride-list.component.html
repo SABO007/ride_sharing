@@ -1,0 +1,73 @@
+<div class="container py-4">
+  <!-- Search Section -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <h2 class="card-title mb-4">Find Available Rides</h2>
+      <div class="row g-3">
+        <div class="col-md-3">
+          <mat-form-field appearance="outline">
+            <mat-label>From</mat-label>
+            <input matInput [(ngModel)]="searchParams.origin" placeholder="Enter origin">
+          </mat-form-field>
+        </div>
+        <div class="col-md-3">
+          <mat-form-field appearance="outline">
+            <mat-label>To</mat-label>
+            <input matInput [(ngModel)]="searchParams.destination" placeholder="Enter destination">
+          </mat-form-field>
+        </div>
+        <div class="col-md-3">
+          <mat-form-field appearance="outline">
+            <mat-label>Date</mat-label>
+            <input matInput [matDatepicker]="picker" [(ngModel)]="searchParams.date">
+            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+          </mat-form-field>
+        </div>
+        <div class="col-md-3">
+          <mat-form-field appearance="outline">
+            <mat-label>Seats</mat-label>
+            <input matInput type="number" [(ngModel)]="searchParams.seats" min="1">
+          </mat-form-field>
+        </div>
+      </div>
+      <div class="d-flex justify-content-end gap-2">
+        <button mat-stroked-button (click)="resetSearch()">Reset</button>
+        <button mat-raised-button color="primary" (click)="searchRides()">Search</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results Section -->
+  <div class="row g-4">
+    <div class="col-md-4" *ngFor="let ride of rides">
+      <mat-card class="h-100">
+        <mat-card-header>
+          <mat-card-title>{{ ride.origin }} → {{ ride.destination }}</mat-card-title>
+          <mat-card-subtitle>{{ ride.date | date }} at {{ ride.time }}</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="my-3">
+            <p class="mb-2"><i class="fas fa-user me-2"></i>Driver: {{ ride.driver }}</p>
+            <p class="mb-2"><i class="fas fa-chair me-2"></i>Available Seats: {{ ride.seats }}</p>
+            <p class="mb-2"><i class="fas fa-dollar-sign me-2"></i>Price: ${{ ride.price }}</p>
+            <p class="mb-0" *ngIf="ride.description">
+              <i class="fas fa-info-circle me-2"></i>{{ ride.description }}
+            </p>
+          </div>
+        </mat-card-content>
+        <mat-card-actions align="end">
+          <button mat-button color="primary" [routerLink]="['/rides', ride.id]">View Details</button>
+          <button mat-raised-button color="primary">Book Now</button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="text-center py-5" *ngIf="rides.length === 0">
+    <i class="fas fa-car-side fa-3x text-muted mb-3"></i>
+    <h3>No rides available</h3>
+    <p class="text-muted">Try adjusting your search criteria or check back later.</p>
+  </div>
+</div> 
