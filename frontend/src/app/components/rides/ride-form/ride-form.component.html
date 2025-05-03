@@ -1,0 +1,110 @@
+<div class="container py-4 fade-in">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <mat-card class="shadow-sm">
+        <mat-card-header class="mb-4">
+          <mat-card-title class="text-primary">Offer a Ride</mat-card-title>
+          <mat-card-subtitle>Share your journey and help others travel</mat-card-subtitle>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <form (ngSubmit)="onSubmit()" #rideForm="ngForm" class="row g-4">
+            <div class="col-md-6">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Driver Name</mat-label>
+                <input matInput [(ngModel)]="ride.driver" name="driver" required>
+                <mat-icon matSuffix>person</mat-icon>
+              </mat-form-field>
+            </div>
+            
+            <div class="col-md-6">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>From</mat-label>
+                <input matInput [formControl]="fromControl" [(ngModel)]="ride.from" name="from" required placeholder="Enter starting location" autocomplete="off">
+                <mat-icon matSuffix>location_on</mat-icon>
+              </mat-form-field>
+              <div *ngIf="fromSuggestions.length > 0" class="suggestions-dropdown">
+                <div *ngFor="let suggestion of fromSuggestions" class="suggestion-item" (click)="selectFromSuggestion(suggestion)">
+                  {{ suggestion.description }}
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-6">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>To</mat-label>
+                <input matInput [formControl]="toControl" [(ngModel)]="ride.to" name="to" required placeholder="Enter destination location" autocomplete="off">
+                <mat-icon matSuffix>place</mat-icon>
+              </mat-form-field>
+              <div *ngIf="toSuggestions.length > 0" class="suggestions-dropdown">
+                <div *ngFor="let suggestion of toSuggestions" class="suggestion-item" (click)="selectToSuggestion(suggestion)">
+                  {{ suggestion.description }}
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-6">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Date</mat-label>
+                <input matInput [matDatepicker]="picker" [(ngModel)]="rideDate" name="date" required [min]="today">
+                <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                <mat-datepicker #picker></mat-datepicker>
+              </mat-form-field>
+            </div>
+            <div class="col-md-6">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Time</mat-label>
+                <input matInput type="time" [(ngModel)]="rideTime" name="time" required>
+                <mat-icon matSuffix>schedule</mat-icon>
+              </mat-form-field>
+            </div>
+            
+            <div class="col-md-6">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Available Seats</mat-label>
+                <input matInput type="number" [(ngModel)]="ride.seats" name="seats" min="1" required>
+                <mat-icon matSuffix>event_seat</mat-icon>
+              </mat-form-field>
+            </div>
+            
+            <div class="col-md-6">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Price per Seat</mat-label>
+                <input matInput type="number" [(ngModel)]="ride.price" name="price" min="0" required>
+                <span matPrefix>$&nbsp;</span>
+                <mat-icon matSuffix>attach_money</mat-icon>
+              </mat-form-field>
+            </div>
+            
+            <div class="col-12">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Additional Information</mat-label>
+                <textarea matInput [(ngModel)]="ride.description" name="description" rows="3" 
+                  placeholder="Any special requirements or details about the ride..."></textarea>
+                <mat-icon matSuffix>info</mat-icon>
+              </mat-form-field>
+            </div>
+            
+            <div class="col-12">
+              <div *ngIf="error" class="alert alert-danger fade-in">
+                <mat-icon>error</mat-icon>
+                {{ error }}
+              </div>
+              <div class="d-flex gap-2 justify-content-end">
+                <button mat-stroked-button routerLink="/rides" color="primary" class="icon-left">
+                  <mat-icon>arrow_back</mat-icon>
+                  Cancel
+                </button>
+                <button mat-raised-button color="primary" type="submit" [disabled]="!rideForm.form.valid || loading" class="icon-left">
+                  <mat-icon *ngIf="!loading">check_circle</mat-icon>
+                  <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
+                  {{ loading ? 'Submitting...' : 'Submit Ride' }}
+                </button>
+              </div>
+            </div>
+          </form>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div> 

@@ -1,0 +1,26 @@
+main {
+  min-height: calc(100vh - 64px);
+  background-color: var(--background-color);
+}
+
+footer {
+  background-color: var(--card-background);
+  
+  h5, h6 {
+    color: var(--text-color);
+    font-weight: 500;
+  }
+  
+  a {
+    text-decoration: none;
+    transition: color 0.2s ease;
+    
+    &:hover {
+      color: var(--primary-color) !important;
+    }
+  }
+  
+  hr {
+    border-color: var(--border-color);
+  }
+} 

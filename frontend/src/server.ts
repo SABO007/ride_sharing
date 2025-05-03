@@ -10,6 +10,7 @@ import { dirname, join, resolve } from 'node:path';
 import { provideClientHydration } from '@angular/platform-browser';
 import { ApplicationConfig } from '@angular/core';
 import { bootstrapApplication } from '@angular/platform-browser';
+import { provideHttpClient, withFetch } from '@angular/common/http';
 
 const app = express();
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
@@ -20,6 +21,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
     provideClientHydration(),
+    provideHttpClient(withFetch()),
     { provide: APP_BASE_HREF, useValue: '/' }
   ]
 };

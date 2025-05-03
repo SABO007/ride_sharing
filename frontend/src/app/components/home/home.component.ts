@@ -1,19 +1,27 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, MatButtonModule, MatIconModule],
   template: `
     <div class="home-container">
       <div class="hero-section">
         <h1>Welcome to Ride Sharing</h1>
         <p class="subtitle">Find your perfect ride today!</p>
         <div class="cta-buttons">
-          <a routerLink="/rides" class="btn btn-primary">Find a Ride</a>
-          <a routerLink="/rides/new" class="btn btn-secondary">Offer a Ride</a>
+          <a mat-raised-button color="primary" routerLink="/rides">
+            <mat-icon>search</mat-icon>
+            Find a Ride
+          </a>
+          <a mat-raised-button color="accent" routerLink="/rides/new">
+            <mat-icon>add_circle</mat-icon>
+            Offer a Ride
+          </a>
         </div>
       </div>
 
@@ -70,28 +78,13 @@ import { RouterModule } from '@angular/router';
       justify-content: center;
     }
 
-    .btn {
-      padding: 0.75rem 1.5rem;
-      border-radius: 0.5rem;
+    .cta-buttons a {
       font-size: 1.1rem;
       font-weight: 500;
-      text-decoration: none;
-      transition: transform 0.2s;
     }
 
-    .btn:hover {
-      transform: translateY(-2px);
-    }
-
-    .btn-primary {
-      background-color: white;
-      color: #6366f1;
-    }
-
-    .btn-secondary {
-      background-color: transparent;
-      border: 2px solid white;
-      color: white;
+    mat-icon {
+      margin-right: 8px;
     }
 
     .features-section {
@@ -146,9 +139,10 @@ import { RouterModule } from '@angular/router';
 
       .cta-buttons {
         flex-direction: column;
+        align-items: stretch;
       }
 
-      .btn {
+      .cta-buttons a {
         width: 100%;
         margin-bottom: 1rem;
       }

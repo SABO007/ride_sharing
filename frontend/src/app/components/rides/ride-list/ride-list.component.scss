@@ -2,7 +2,8 @@
   display: block;
 }
 
-.mat-card {
+.mat-mdc-card {
+  height: 100%;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 
   &:hover {
@@ -11,39 +12,73 @@
   }
 }
 
-.mat-card-header {
+.mat-mdc-card-header {
   margin-bottom: 1rem;
 }
 
-.mat-card-title {
+.mat-mdc-card-title {
   font-size: 1.25rem;
   margin-bottom: 0.5rem;
 }
 
-.mat-card-subtitle {
-  color: var(--secondary-color);
+.mat-mdc-card-subtitle {
+  color: rgba(0, 0, 0, 0.6);
 }
 
-.mat-card-content {
+.mat-mdc-card-content {
   i {
-    color: var(--primary-color);
+    color: #3f51b5;
     width: 20px;
   }
 }
 
-.mat-card-actions {
+.mat-mdc-card-actions {
+  padding: 1rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.mat-mdc-form-field {
+  width: 100%;
+}
+
+.mat-datepicker-toggle {
+  color: black;
+}
+
+.mat-mdc-card-content {
   padding: 1rem;
   border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .search-section {
-  background-color: #f8f9fa;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  margin-bottom: 2rem;
 }
 
 .empty-state {
+  text-align: center;
+  padding: 3rem 0;
+  
   i {
-    color: var(--secondary-color);
+    color: rgba(0, 0, 0, 0.4);
+    margin-bottom: 1rem;
   }
+}
+
+.card {
+  transition: transform 0.2s;
+  &:hover {
+    transform: translateY(-5px);
+  }
+}
+
+.card-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 0.5rem;
+}
+
+.card-row mat-icon {
+  margin-right: 8px;
+  vertical-align: middle;
 } 

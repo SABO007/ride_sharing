@@ -1,0 +1,41 @@
+<nav class="navbar navbar-expand-lg shadow-sm">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center" routerLink="/">
+      <mat-icon class="me-2">directions_car</mat-icon>
+      RideShare
+    </a>
+    
+    <button mat-icon-button class="d-lg-none" (click)="isMenuOpen = !isMenuOpen">
+      <mat-icon>menu</mat-icon>
+    </button>
+    
+    <div class="collapse navbar-collapse" [class.show]="isMenuOpen">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+            <mat-icon class="me-1">home</mat-icon>
+            Home
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/rides" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+            <mat-icon class="me-1">search</mat-icon>
+            Find Rides
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/rides/new" routerLinkActive="active">
+            <mat-icon class="me-1">add_circle</mat-icon>
+            Offer Ride
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/profile" routerLinkActive="active">
+            <mat-icon class="me-1">person</mat-icon>
+            Profile
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav> 
