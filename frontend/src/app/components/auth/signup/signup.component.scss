@@ -1,0 +1,43 @@
+@use '../login/login.component.scss';
+
+.social-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+
+  img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+  }
+
+  &.google {
+    &:hover {
+      background-color: #f3f4f6;
+    }
+  }
+
+  &.facebook {
+    background-color: #1877f2;
+    color: white;
+    border: none;
+
+    &:hover {
+      background-color: #166fe5;
+    }
+
+    img {
+      filter: brightness(0) invert(1);
+    }
+  }
+} 

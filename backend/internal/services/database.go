@@ -103,7 +103,7 @@ func (db *Database) FindRides(from, to, date, searchTime string) ([]models.Ride,
 	nextDay := inputDate.Add(24 * time.Hour).Format("2006-01-02")
 
 	result := db.Where(
-		"\"from\" ILIKE ? AND \"to\" ILIKE ? AND ((date = ? AND time >= ?) OR (date = ?))",
+		"(\"from\" COLLATE \"C\" = ? AND \"to\" COLLATE \"C\" = ?) AND ((date = ? AND time >= ?) OR (date = ?))",
 		from, to, date, searchTime, nextDay,
 	).Find(&rides)
 

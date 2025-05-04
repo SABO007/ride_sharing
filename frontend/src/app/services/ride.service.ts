@@ -23,7 +23,7 @@ export interface Ride {
   providedIn: 'root'
 })
 export class RideService {
-  private apiUrl = 'http://localhost:8080/api/rides';
+  private apiUrl = 'http://localhost:8080/rides';
   private googlePlacesUrl = 'https://maps.googleapis.com/maps/api/place/autocomplete/json';
 
   constructor(private http: HttpClient) { }

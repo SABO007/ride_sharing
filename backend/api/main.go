@@ -6,8 +6,10 @@ import (
 	"os"
 	"time"
 
+	"ride_sharing/backend/internal/auth"
 	"ride_sharing/backend/internal/config"
 	"ride_sharing/backend/internal/handlers"
+	"ride_sharing/backend/internal/models"
 	"ride_sharing/backend/internal/services"
 
 	gorillaHandlers "github.com/gorilla/handlers"
@@ -39,37 +41,44 @@ func main() {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
 
+	// Initialize user repository
+	userRepo := models.NewUserRepository(db.DB)
+	if err := userRepo.CreateTable(); err != nil {
+		log.Fatalf("Failed to migrate user table: %v", err)
+	}
+
 	// Initialize handlers
-	rideHandler := handlers.NewRideHandler(db)
+	rideHandler := handlers.NewRideHandler(db.DB)
 
 	// Initialize Google Places service and handler
 	placesService := services.NewGooglePlacesService(cfg.GoogleMapsAPIKey)
 	placesHandler := handlers.NewGooglePlacesHandler(placesService)
 
+	// Initialize auth service
+	authService := auth.NewAuthService(cfg, userRepo)
+
 	// Initialize router
 	router := mux.NewRouter()
 	router.Use(loggingMiddleware) // Add logging middleware to main router
 
-	// Create API subrouter
-	api := router.PathPrefix("/api").Subrouter()
+	// Register routes on the root router (no /api prefix)
+	router.HandleFunc("/rides", rideHandler.CreateRide).Methods("POST")
+	router.HandleFunc("/rides", rideHandler.GetRides).Methods("GET")
 
-	// Register routes
-	api.HandleFunc("/rides", rideHandler.CreateRide).Methods("POST")
-	api.HandleFunc("/rides", rideHandler.GetRides).Methods("GET")
-
-	// Create a subrouter for /rides to handle find and ID routes
-	ridesRouter := api.PathPrefix("/rides").Subrouter()
-
-	// Register the find route
+	ridesRouter := router.PathPrefix("/rides").Subrouter()
 	ridesRouter.HandleFunc("/find", rideHandler.FindRides).Methods("GET")
-
-	// Then register the ID routes with UUID pattern
 	ridesRouter.HandleFunc("/{id:[0-9a-fA-F-]+}", rideHandler.GetRide).Methods("GET")
 	ridesRouter.HandleFunc("/{id:[0-9a-fA-F-]+}", rideHandler.UpdateRide).Methods("PUT")
 	ridesRouter.HandleFunc("/{id:[0-9a-fA-F-]+}", rideHandler.DeleteRide).Methods("DELETE")
 
-	// Register Google Places autocomplete route
-	api.HandleFunc("/places-autocomplete", placesHandler.Autocomplete).Methods("GET")
+	router.HandleFunc("/places-autocomplete", placesHandler.Autocomplete).Methods("GET")
+
+	router.HandleFunc("/auth/google/login", authService.GoogleLoginMux).Methods("GET")
+	router.HandleFunc("/auth/google/callback", authService.GoogleCallbackMux).Methods("GET")
+	router.HandleFunc("/auth/facebook/login", authService.FacebookLoginMux).Methods("GET")
+	router.HandleFunc("/auth/facebook/callback", authService.FacebookCallbackMux).Methods("GET")
+	router.HandleFunc("/auth/email/signup", authService.EmailSignupMux).Methods("POST")
+	router.HandleFunc("/auth/email/login", authService.EmailLoginMux).Methods("POST")
 
 	// Add CORS middleware
 	corsMiddleware := gorillaHandlers.CORS(

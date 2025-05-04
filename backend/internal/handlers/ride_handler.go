@@ -5,16 +5,16 @@ import (
 	"log"
 	"net/http"
 	"ride_sharing/backend/internal/models"
-	"ride_sharing/backend/internal/services"
 
 	"github.com/gorilla/mux"
+	"gorm.io/gorm"
 )
 
 type RideHandler struct {
-	db *services.Database
+	db *gorm.DB
 }
 
-func NewRideHandler(db *services.Database) *RideHandler {
+func NewRideHandler(db *gorm.DB) *RideHandler {
 	return &RideHandler{db: db}
 }
 
@@ -39,7 +39,7 @@ func (h *RideHandler) CreateRide(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Printf("Attempting to create ride: %+v", ride)
-	if err := h.db.CreateRide(&ride); err != nil {
+	if err := h.db.Create(&ride).Error; err != nil {
 		log.Printf("Error creating ride: %v", err)
 		http.Error(w, "Failed to create ride", http.StatusInternalServerError)
 		return
@@ -54,8 +54,8 @@ func (h *RideHandler) CreateRide(w http.ResponseWriter, r *http.Request) {
 func (h *RideHandler) GetRides(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Received GET request for all rides")
 
-	rides, err := h.db.GetRides()
-	if err != nil {
+	var rides []models.Ride
+	if err := h.db.Find(&rides).Error; err != nil {
 		log.Printf("Error getting rides: %v", err)
 		http.Error(w, "Failed to get rides", http.StatusInternalServerError)
 		return
@@ -71,8 +71,8 @@ func (h *RideHandler) GetRide(w http.ResponseWriter, r *http.Request) {
 	id := vars["id"]
 	log.Printf("Received GET request for ride ID: %s", id)
 
-	ride, err := h.db.GetRideByID(id)
-	if err != nil {
+	var ride models.Ride
+	if err := h.db.First(&ride, "id = ?", id).Error; err != nil {
 		log.Printf("Error getting ride %s: %v", id, err)
 		http.Error(w, "Ride not found", http.StatusNotFound)
 		return
@@ -97,7 +97,7 @@ func (h *RideHandler) UpdateRide(w http.ResponseWriter, r *http.Request) {
 
 	ride.ID = id
 	log.Printf("Attempting to update ride: %+v", ride)
-	if err := h.db.UpdateRide(&ride); err != nil {
+	if err := h.db.Updates(&ride).Error; err != nil {
 		log.Printf("Error updating ride %s: %v", id, err)
 		http.Error(w, "Failed to update ride", http.StatusInternalServerError)
 		return
@@ -113,7 +113,7 @@ func (h *RideHandler) DeleteRide(w http.ResponseWriter, r *http.Request) {
 	id := vars["id"]
 	log.Printf("Received DELETE request for ride ID: %s", id)
 
-	if err := h.db.DeleteRide(id); err != nil {
+	if err := h.db.Delete(&models.Ride{}, "id = ?", id).Error; err != nil {
 		log.Printf("Error deleting ride %s: %v", id, err)
 		http.Error(w, "Failed to delete ride", http.StatusInternalServerError)
 		return
@@ -128,18 +128,34 @@ func (h *RideHandler) FindRides(w http.ResponseWriter, r *http.Request) {
 	to := r.URL.Query().Get("to")
 	date := r.URL.Query().Get("date")
 	timeParam := r.URL.Query().Get("time")
-	log.Printf("Searching for rides")
+	log.Printf("Searching for rides from %s to %s on %s after %s", from, to, date, timeParam)
+
 	if from == "" || to == "" || date == "" {
 		http.Error(w, "Missing from, to, or date parameter", http.StatusBadRequest)
 		return
 	}
-	rides, err := h.db.FindRides(from, to, date, timeParam)
-	log.Printf("Found %d rides matching criteria", len(rides))
-	if err != nil {
+
+	var rides []models.Ride
+	// Use COLLATE "C" for case-sensitive matching in PostgreSQL
+	query := h.db.Where("\"from\" COLLATE \"C\" = ? AND \"to\" COLLATE \"C\" = ?", from, to)
+
+	// Add date condition
+	if date != "" {
+		query = query.Where("date = ?", date)
+	}
+
+	// Add time condition if provided
+	if timeParam != "" {
+		query = query.Where("time >= ?", timeParam)
+	}
+
+	if err := query.Find(&rides).Error; err != nil {
 		log.Printf("Error finding rides: %v", err)
 		http.Error(w, "Failed to find rides", http.StatusInternalServerError)
 		return
 	}
+
+	log.Printf("Found %d rides matching criteria", len(rides))
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(rides)
 }
