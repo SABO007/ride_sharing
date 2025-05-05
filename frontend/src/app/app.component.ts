@@ -13,6 +13,7 @@ import { NavbarComponent } from './components/navbar/navbar.component';
       <main class="main-content">
         <router-outlet></router-outlet>
       </main>
+      
     </div>
   `,
   styles: [`
@@ -24,7 +25,7 @@ import { NavbarComponent } from './components/navbar/navbar.component';
 
     .main-content {
       flex: 1;
-      padding: 2rem;
+      padding: 0rem;
     }
   `]
 })

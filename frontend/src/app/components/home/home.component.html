@@ -1,91 +1,93 @@
-<!-- Hero Section -->
-<section class="hero bg-primary text-white py-5">
-  <div class="container">
-    <div class="row align-items-center">
-      <div class="col-md-6">
-        <h1 class="display-4 fw-bold">Share Your Journey</h1>
-        <p class="lead">Connect with travelers going your way. Save money, reduce emissions, and make new friends!</p>
-        <div class="mt-4">
+<div class="home-container">
+  <section class="slideshow-container">
+    <div class="slideshow" [style.background-image]="'url(' + slides[currentIndex].image + ')'">
+      <div class="slideshow-content">
+        <h1 class="title">{{ slides[currentIndex].title }}</h1>
+        <p class="description">{{ slides[currentIndex].description }}</p>
+        <div class="cta-container">
           <a routerLink="/rides" class="btn btn-light btn-lg me-3">Find a Ride</a>
           <a routerLink="/rides/new" class="btn btn-outline-light btn-lg">Offer a Ride</a>
         </div>
       </div>
-      <div class="col-md-6">
-        <img src="assets/images/hero-image.svg" alt="Ride sharing illustration" class="img-fluid">
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section class="how-it-works-section">
+    <div class="container">
+      <div class="row g-4 text-center">
+        <div class="col-md-3">
+          <div class="step">
+            <div class="circle-icon">1</div>
+            <h3 class="h5 mt-3">Sign Up</h3>
+            <p>Create your free account</p>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="step">
+            <div class="circle-icon">2</div>
+            <h3 class="h5 mt-3">Search</h3>
+            <p>Find rides going your way</p>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="step">
+            <div class="circle-icon">3</div>
+            <h3 class="h5 mt-3">Book</h3>
+            <p>Reserve your seat instantly</p>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="step">
+            <div class="circle-icon">4</div>
+            <h3 class="h5 mt-3">Travel</h3>
+            <p>Enjoy your shared journey</p>
+          </div>
+        </div>
       </div>
+    </div>
+  </section>
+  
+
+<!-- Hero & Features Combined Section -->
+<section class="hero-features-section py-5">
+  <div class="container">
+    <div class="row align-items-center gx-5">
+      
+      <!-- Image -->
+      <div class="col-md-6 mb-4 mb-md-0">
+        <img src="../../../assets/images/hero-image.png" alt="Ride sharing illustration" class="img-fluid rounded shadow">
+      </div>
+
+      <!-- Text Features -->
+      <div class="col-md-6 text-center text-black">
+        <h2 class="mb-5 fw-bold">Why Choose RideShare?</h2>
+
+          <div class="feature-list">
+            <div class="feature-item">
+              <i class="fas fa-money-bill-wave"></i>
+              <div>
+                <h5>Save Money</h5>
+                <p>Split travel costs and save on your journeys.</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <i class="fas fa-leaf"></i>
+              <div>
+                <h5>Go Green</h5>
+                <p>Reduce your carbon footprint by sharing rides.</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <i class="fas fa-users"></i>
+              <div>
+                <h5>Meet People</h5>
+                <p>Connect with like-minded travelers.</p>
+              </div>
+            </div>
+          </div>
+      </div>
+
     </div>
   </div>
 </section>
-
-<!-- Features Section -->
-<section class="features py-5">
-  <div class="container">
-    <h2 class="text-center mb-5">Why Choose RideShare?</h2>
-    <div class="row g-4">
-      <div class="col-md-4">
-        <div class="card h-100">
-          <div class="card-body text-center">
-            <i class="fas fa-money-bill-wave fa-3x text-primary mb-3"></i>
-            <h3 class="card-title h5">Save Money</h3>
-            <p class="card-text">Split travel costs and save on your journeys.</p>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card h-100">
-          <div class="card-body text-center">
-            <i class="fas fa-leaf fa-3x text-primary mb-3"></i>
-            <h3 class="card-title h5">Go Green</h3>
-            <p class="card-text">Reduce your carbon footprint by sharing rides.</p>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card h-100">
-          <div class="card-body text-center">
-            <i class="fas fa-users fa-3x text-primary mb-3"></i>
-            <h3 class="card-title h5">Meet People</h3>
-            <p class="card-text">Connect with like-minded travelers.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- How It Works Section -->
-<section class="how-it-works bg-light py-5">
-  <div class="container">
-    <h2 class="text-center mb-5">How It Works</h2>
-    <div class="row g-4">
-      <div class="col-md-3">
-        <div class="text-center">
-          <div class="circle-icon bg-primary text-white mb-3">1</div>
-          <h3 class="h5">Sign Up</h3>
-          <p>Create your free account</p>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="text-center">
-          <div class="circle-icon bg-primary text-white mb-3">2</div>
-          <h3 class="h5">Search</h3>
-          <p>Find rides going your way</p>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="text-center">
-          <div class="circle-icon bg-primary text-white mb-3">3</div>
-          <h3 class="h5">Book</h3>
-          <p>Reserve your seat instantly</p>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="text-center">
-          <div class="circle-icon bg-primary text-white mb-3">4</div>
-          <h3 class="h5">Travel</h3>
-          <p>Enjoy your shared journey</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section> 

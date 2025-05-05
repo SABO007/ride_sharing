@@ -1,41 +1,35 @@
-<nav class="navbar navbar-expand-lg shadow-sm">
-  <div class="container">
-    <a class="navbar-brand d-flex align-items-center" routerLink="/">
-      <mat-icon class="me-2">directions_car</mat-icon>
-      GatorRide
-    </a>
+<nav class="navbar">
+  <div class="navbar-brand">
+    <a routerLink="/" class="logo">GatorRide</a>
+  </div>
+  
+  <div class="navbar-menu">
+    <ng-container *ngIf="authService.isAuthenticated() | async; else notAuthenticated">
+      <div class="navbar-end">
+        <div class="user-profile">
+          <div class="avatar" *ngIf="(authService.currentUser$ | async)?.profile_image; else noImage">
+            <img [src]="(authService.currentUser$ | async)?.profile_image" alt="Profile" />
+          </div>
+          <ng-template #noImage>
+            <div class="avatar fallback">
+              {{ (authService.currentUser$ | async)?.name?.charAt(0) }}
+            </div>
+          </ng-template>
+          <span class="user-info">
+            {{ (authService.currentUser$ | async)?.name }}
+          </span>
+        </div>
+        <button (click)="logout()" class="logout-button">
+          Logout
+        </button>
+      </div>
+    </ng-container>
     
-    <button mat-icon-button class="d-lg-none" (click)="isMenuOpen = !isMenuOpen">
-      <mat-icon>menu</mat-icon>
-    </button>
-    
-    <div class="collapse navbar-collapse" [class.show]="isMenuOpen">
-      <ul class="navbar-nav ms-auto">
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
-            <mat-icon class="me-1">home</mat-icon>
-            Home
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/rides" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-            <mat-icon class="me-1">search</mat-icon>
-            Find Rides
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/rides/new" routerLinkActive="active">
-            <mat-icon class="me-1">add_circle</mat-icon>
-            Offer Ride
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/profile" routerLinkActive="active">
-            <mat-icon class="me-1">person</mat-icon>
-            Profile
-          </a>
-        </li>
-      </ul>
-    </div>
+    <ng-template #notAuthenticated>
+      <div class="navbar-end">
+        <a routerLink="/login" class="nav-link">Login</a>
+        <a routerLink="/signup" class="nav-link primary">Sign Up</a>
+      </div>
+    </ng-template>
   </div>
 </nav> 
