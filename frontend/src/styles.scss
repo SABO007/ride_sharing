@@ -108,8 +108,8 @@ main {
 /* Custom Colors */
 :root {
   /* Branding & Primary UI */
-  --primary-color: #cfd8dc;             /* White – Text & icons on dark bg */
-  --primary-color-dark: #1a2a3a;        /* Rich deep navy – navbar/footers */
+  --primary-color: #1a2a3a;             /* White – Text & icons on dark bg */
+  --primary-color-dark: black;        /* Rich deep navy – navbar/footers */
 
   /* Accent Colors */
   --accent-color: #1e88e5;              /* Clean sky blue – buttons/CTAs */
@@ -135,7 +135,6 @@ main {
   --text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
   font-size: 1rem; 
   font-weight: 500;
-
 }
 
 

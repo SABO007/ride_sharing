@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 
@@ -11,9 +11,17 @@ import { AuthService } from '../../../services/auth.service';
   templateUrl: './signup.component.html',
   styleUrls: ['./signup.component.scss']
 })
-export class SignupComponent {
+export class SignupComponent implements OnInit, OnDestroy {
   signupForm: FormGroup;
   error: string = '';
+
+  slideshowImages: string[] = [
+    'assets/images/ride-sharing1.png',
+    'assets/images/ride-sharing2.png',
+    'assets/images/ride-sharing3.png',
+  ];
+  currentSlideIndex = 0;
+  private slideInterval: any;
 
   constructor(
     private fb: FormBuilder,
@@ -26,6 +34,20 @@ export class SignupComponent {
     });
   }
 
+  ngOnInit(): void {
+    this.startSlideshow();
+  }
+
+  ngOnDestroy(): void {
+    clearInterval(this.slideInterval);
+  }
+
+  startSlideshow(): void {
+    this.slideInterval = setInterval(() => {
+      this.currentSlideIndex = (this.currentSlideIndex + 1) % this.slideshowImages.length;
+    }, 4000);
+  }
+
   onSubmit() {
     if (this.signupForm.valid) {
       this.authService.signup(
@@ -34,7 +56,7 @@ export class SignupComponent {
         this.signupForm.value.password
       ).subscribe({
         next: () => {
-          // Navigation will be handled by the auth service
+          // handle redirect or success feedback
         },
         error: (err) => {
           this.error = err.error?.message || 'An error occurred during signup';
@@ -50,4 +72,4 @@ export class SignupComponent {
   onFacebookSignup() {
     this.authService.facebookLogin();
   }
-} 
+}

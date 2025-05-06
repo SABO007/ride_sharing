@@ -1,43 +1,42 @@
-@use '../login/login.component.scss';
+@use '../login/login.component.scss' as *;
 
-.social-button {
+.signup-wrapper {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  background: white;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  width: 100%;
+  height: 100vh;
+  background-color: white;
+  border: 1px solid #2c3e50;
 
-  img {
-    width: 24px;
-    height: 24px;
-    object-fit: contain;
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
+}
+
+.signup-slideshow-section {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background-color: #eaf3f8;
+  border: 1px solid #2c3e50;
+
+  @media (max-width: 768px) {
+    display: none;
   }
 
-  &.google {
-    &:hover {
-      background-color: #f3f4f6;
-    }
+  .signup-slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+    z-index: 0;
   }
 
-  &.facebook {
-    background-color: #1877f2;
-    color: white;
-    border: none;
-
-    &:hover {
-      background-color: #166fe5;
-    }
-
-    img {
-      filter: brightness(0) invert(1);
-    }
+  .signup-slide.active {
+    opacity: 1;
+    z-index: 1;
   }
-} 
+}

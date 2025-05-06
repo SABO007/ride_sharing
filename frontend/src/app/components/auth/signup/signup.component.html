@@ -1,75 +1,88 @@
-<div class="auth-container">
-  <div class="auth-card">
-    <h1>Create Account</h1>
-    <p class="subtitle">Sign up to get started with Ride Sharing</p>
+<div class="signup-wrapper">
+  <!-- Slideshow Section -->
+  <div class="signup-slideshow-section">
+    <div
+      class="signup-slide"
+      *ngFor="let slide of slideshowImages; let i = index"
+      [class.active]="i === currentSlideIndex"
+      [style.backgroundImage]="'url(' + slide + ')'"
+    ></div>
+  </div>
 
-    <form [formGroup]="signupForm" (ngSubmit)="onSubmit()" class="auth-form">
-      <div class="form-group">
-        <label for="name">Full Name</label>
-        <input
-          type="text"
-          id="name"
-          formControlName="name"
-          placeholder="Enter your full name"
-          [class.error]="signupForm.get('name')?.invalid && signupForm.get('name')?.touched"
-        />
-        <div class="error-message" *ngIf="signupForm.get('name')?.invalid && signupForm.get('name')?.touched">
-          Please enter your name
+  <!-- Signup Form Section -->
+  <div class="auth-container">
+    <div class="auth-card">
+      <h1>Create Account</h1>
+      <p class="subtitle">Sign up to get started with Ride Sharing</p>
+
+      <form [formGroup]="signupForm" (ngSubmit)="onSubmit()" class="auth-form">
+        <div class="form-group">
+          <label for="name">Full Name</label>
+          <input
+            type="text"
+            id="name"
+            formControlName="name"
+            placeholder="Enter your full name"
+            [class.error]="signupForm.get('name')?.invalid && signupForm.get('name')?.touched"
+          />
+          <div class="error-message" *ngIf="signupForm.get('name')?.invalid && signupForm.get('name')?.touched">
+            Please enter your name
+          </div>
         </div>
+
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input
+            type="email"
+            id="email"
+            formControlName="email"
+            placeholder="Enter your email"
+            [class.error]="signupForm.get('email')?.invalid && signupForm.get('email')?.touched"
+          />
+          <div class="error-message" *ngIf="signupForm.get('email')?.invalid && signupForm.get('email')?.touched">
+            Please enter a valid email
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input
+            type="password"
+            id="password"
+            formControlName="password"
+            placeholder="Create a password"
+            [class.error]="signupForm.get('password')?.invalid && signupForm.get('password')?.touched"
+          />
+          <div class="error-message" *ngIf="signupForm.get('password')?.invalid && signupForm.get('password')?.touched">
+            Password must be at least 6 characters
+          </div>
+        </div>
+
+        <div class="error-message" *ngIf="error">{{ error }}</div>
+
+        <button type="submit" [disabled]="signupForm.invalid" class="primary-button">
+          Create Account
+        </button>
+      </form>
+
+      <div class="divider">
+        <span>OR</span>
       </div>
 
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input
-          type="email"
-          id="email"
-          formControlName="email"
-          placeholder="Enter your email"
-          [class.error]="signupForm.get('email')?.invalid && signupForm.get('email')?.touched"
-        />
-        <div class="error-message" *ngIf="signupForm.get('email')?.invalid && signupForm.get('email')?.touched">
-          Please enter a valid email
-        </div>
+      <div class="social-login">
+        <button (click)="onGoogleSignup()" class="social-button google">
+          <img src="assets/images/google-icon.svg" alt="Google" />
+          Continue with Google
+        </button>
+        <button (click)="onFacebookSignup()" class="social-button facebook">
+          <img src="assets/images/facebook-icon.svg" alt="Facebook" />
+          Continue with Facebook
+        </button>
       </div>
 
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input
-          type="password"
-          id="password"
-          formControlName="password"
-          placeholder="Create a password"
-          [class.error]="signupForm.get('password')?.invalid && signupForm.get('password')?.touched"
-        />
-        <div class="error-message" *ngIf="signupForm.get('password')?.invalid && signupForm.get('password')?.touched">
-          Password must be at least 6 characters
-        </div>
+      <div class="auth-footer">
+        <p>Already have an account? <a routerLink="/login">Sign In</a></p>
       </div>
-
-      <div class="error-message" *ngIf="error">{{ error }}</div>
-
-      <button type="submit" [disabled]="signupForm.invalid" class="primary-button">
-        Create Account
-      </button>
-    </form>
-
-    <div class="divider">
-      <span>OR</span>
-    </div>
-
-    <div class="social-login">
-      <button (click)="onGoogleSignup()" class="social-button google">
-        <img src="assets/images/google-icon.svg" alt="Google" />
-        Continue with Google
-      </button>
-      <button (click)="onFacebookSignup()" class="social-button facebook">
-        <img src="assets/images/facebook-icon.svg" alt="Facebook" />
-        Continue with Facebook
-      </button>
-    </div>
-
-    <div class="auth-footer">
-      <p>Already have an account? <a routerLink="/login">Sign In</a></p>
     </div>
   </div>
-</div> 
+</div>

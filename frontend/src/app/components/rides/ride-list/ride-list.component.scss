@@ -2,6 +2,34 @@
   display: block;
 }
 
+.ride-selector {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.section-tab {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 500;
+  color: #2c3e50;
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background-color: #f3f4f6;
+  }
+
+  &.active-section {
+    background: linear-gradient(45deg, #4a90e2, #2c3e50);
+    color: white;
+    border-color: #2c3e50;
+    font-weight: 600;
+  }
+}
+
+
 .mat-mdc-card {
   height: 100%;
   transition: transform 0.3s ease, box-shadow 0.3s ease;

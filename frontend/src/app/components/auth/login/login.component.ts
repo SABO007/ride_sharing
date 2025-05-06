@@ -1,19 +1,27 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterModule],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit, OnDestroy {
   loginForm: FormGroup;
   error: string = '';
+
+  slideshowImages: string[] = [
+    'assets/images/ride-sharing1.png',
+    'assets/images/ride-sharing2.png',
+    'assets/images/ride-sharing3.png',
+  ];
+  currentSlideIndex = 0;
+  private slideInterval: any;
 
   constructor(
     private fb: FormBuilder,
@@ -26,7 +34,6 @@ export class LoginComponent {
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
 
-    // Handle Google OAuth redirect
     this.route.queryParams.subscribe(params => {
       const token = params['token'];
       if (token) {
@@ -39,15 +46,27 @@ export class LoginComponent {
     });
   }
 
+  ngOnInit(): void {
+    this.startSlideshow();
+  }
+
+  ngOnDestroy(): void {
+    clearInterval(this.slideInterval);
+  }
+
+  startSlideshow(): void {
+    this.slideInterval = setInterval(() => {
+      this.currentSlideIndex = (this.currentSlideIndex + 1) % this.slideshowImages.length;
+    }, 4000);
+  }
+
   onSubmit() {
     if (this.loginForm.valid) {
       this.authService.login(
         this.loginForm.value.email,
         this.loginForm.value.password
       ).subscribe({
-        next: () => {
-          // Navigation will be handled by the auth service
-        },
+        next: () => {},
         error: (err) => {
           this.error = err.error?.message || 'An error occurred during login';
         }
@@ -62,4 +81,4 @@ export class LoginComponent {
   onFacebookLogin() {
     this.authService.facebookLogin();
   }
-} 
+}

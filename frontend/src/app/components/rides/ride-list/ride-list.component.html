@@ -1,5 +1,21 @@
-<div class="container py-4 fade-in">
-  <!-- Search Section -->
+<div class="container fade-in">
+  <div class="ride-selector d-flex gap-3 mb-4">
+    <a
+      routerLink="/rides"
+      routerLinkActive="active-section"
+      [routerLinkActiveOptions]="{ exact: true }"
+      class="section-tab"
+    >
+      Find a Ride
+    </a>
+    <a
+      routerLink="/rides/new"
+      routerLinkActive="active-section"
+      class="section-tab"
+    >
+      Offer a Ride
+    </a>
+  </div>
   <div class="card shadow-sm mb-4">
     <div class="card-body">
       <h2 class="card-title text-primary mb-4">Find Available Rides</h2>

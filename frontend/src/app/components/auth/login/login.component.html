@@ -1,61 +1,72 @@
-<div class="auth-container">
-  <div class="auth-card">
-    <h1>Welcome Back</h1>
-    <p class="subtitle">Sign in to continue to your account</p>
+<div class="login-wrapper">
+  <!-- Slideshow Section -->
+  <div class="login-slideshow-section">
+    <div
+      class="login-slide"
+      *ngFor="let slide of slideshowImages; let i = index"
+      [class.active]="i === currentSlideIndex"
+      [style.backgroundImage]="'url(' + slide + ')'"
+    ></div>
+  </div>
 
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form">
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input
-          type="email"
-          id="email"
-          formControlName="email"
-          placeholder="Enter your email"
-          [class.error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
-        />
-        <div class="error-message" *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
-          Please enter a valid email
+  <!-- Login Form Section -->
+  <div class="auth-container">
+    <div class="auth-card">
+      <h1>Welcome Back</h1>
+      <p class="subtitle">Sign in to continue to your account</p>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input
+            type="email"
+            id="email"
+            formControlName="email"
+            placeholder="Enter your email"
+            [class.error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+          />
+          <div class="error-message" *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
+            Please enter a valid email
+          </div>
         </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input
+            type="password"
+            id="password"
+            formControlName="password"
+            placeholder="Enter your password"
+            [class.error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+          />
+          <div class="error-message" *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+            Password must be at least 6 characters
+          </div>
+        </div>
+
+        <div class="error-message" *ngIf="error">{{ error }}</div>
+
+        <button type="submit" [disabled]="loginForm.invalid" class="primary-button">
+          Sign In
+        </button>
+      </form>
+
+      <div class="divider"><span>OR</span></div>
+
+      <div class="social-login">
+        <button (click)="onGoogleLogin()" class="social-button google">
+          <img src="assets/images/google-icon.svg" alt="Google" />
+          Continue with Google
+        </button>
+        <button (click)="onFacebookLogin()" class="social-button facebook">
+          <img src="assets/images/facebook-icon.svg" alt="Facebook" />
+          Continue with Facebook
+        </button>
       </div>
 
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input
-          type="password"
-          id="password"
-          formControlName="password"
-          placeholder="Enter your password"
-          [class.error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
-        />
-        <div class="error-message" *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
-          Password must be at least 6 characters
-        </div>
+      <div class="auth-footer">
+        <p>Don't have an account? <a routerLink="/signup">Sign Up</a></p>
       </div>
-
-      <div class="error-message" *ngIf="error">{{ error }}</div>
-
-      <button type="submit" [disabled]="loginForm.invalid" class="primary-button">
-        Sign In
-      </button>
-    </form>
-
-    <div class="divider">
-      <span>OR</span>
-    </div>
-
-    <div class="social-login">
-      <button (click)="onGoogleLogin()" class="social-button google">
-        <img src="../../../../assets/images/google-icon.svg" alt="Google" />
-        Continue with Google
-      </button>
-      <button (click)="onFacebookLogin()" class="social-button facebook">
-        <img src="../../../../assets/images/facebook-icon.svg" alt="Facebook" />
-        Continue with Facebook
-      </button>
-    </div>
-
-    <div class="auth-footer">
-      <p>Don't have an account? <a routerLink="/signup">Sign Up</a></p>
     </div>
   </div>
-</div> 
+</div>

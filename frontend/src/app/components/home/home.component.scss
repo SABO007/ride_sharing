@@ -1,6 +1,7 @@
 .hero-features-section {
   background-color: #eaf3f8;
   color: #000;
+  border: 1px solid #2c3e50;
 }
 
 .hero-features-section img {
@@ -97,6 +98,7 @@
   height: 10vh;
   padding: 0rem;
   margin: 0rem;
+  border: 1px solid #2c3e50;
 
   .circle-icon {
     transition: transform 0.3s ease;
@@ -150,6 +152,7 @@
   position: relative;
   height: 65vh;
   overflow: hidden;
+  border: 1px solid #2c3e50;
 }
 
 .slideshow {

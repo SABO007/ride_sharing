@@ -1,19 +1,61 @@
+.login-wrapper {
+  display: flex;
+  height: 100vh;
+  background-color: white;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
+}
+
+.login-slideshow-section {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #2c3e50;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+
+  .login-slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    border: 1px solid #2c3e50;
+    transition: opacity 1s ease-in-out;
+    z-index: 0;
+  }
+
+  .login-slide.active {
+    opacity: 1;
+    z-index: 1;
+  }
+}
+
 .auth-container {
+  flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  background-color: #f5f5f5;
-  padding: 20px;
-}
+  padding: 2rem;
+  background-color: #fff;
+  border: 1px solid #2c3e50;
 
-.auth-card {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  padding: 40px;
-  width: 100%;
-  max-width: 400px;
+  .auth-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 40px;
+    width: 100%;
+    max-width: 400px;
+    border: 0.4px solid #2c3e50;
+  }
 }
 
 h1 {
@@ -55,7 +97,7 @@ input {
 
   &:focus {
     outline: none;
-    border-color: #4f46e5;
+    border-color: #2c3e50;
   }
 
   &.error {
@@ -70,7 +112,14 @@ input {
 }
 
 .primary-button {
-  background-color: #4f46e5;
+  background: linear-gradient(
+    45deg,
+    #4a90e2 0%,
+    #357abd 25%,
+    #2c3e50 50%,
+    #1a2a3a 75%,
+    #0f1923 100%
+  );
   color: white;
   padding: 12px;
   border: none;
@@ -78,15 +127,21 @@ input {
   font-size: 16px;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.4s ease;
 
   &:hover {
-    background-color: #4338ca;
+    filter: brightness(1.1);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
   }
 
   &:disabled {
-    background-color: #a5b4fc;
+    background: linear-gradient(45deg, #a5b4fc, #8e9cff);
     cursor: not-allowed;
+    opacity: 0.6;
+    filter: none;
+    transform: none;
+    box-shadow: none;
   }
 }
 
@@ -163,7 +218,7 @@ input {
   font-size: 14px;
 
   a {
-    color: #4f46e5;
+    color: #2c3e50;
     text-decoration: none;
     font-weight: 500;
 
@@ -171,4 +226,4 @@ input {
       text-decoration: underline;
     }
   }
-} 
+}
