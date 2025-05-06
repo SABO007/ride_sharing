@@ -30,7 +30,25 @@ func NewDatabase(cfg *config.Config) (*Database, error) {
 		return nil, fmt.Errorf("failed to connect to database: %v", err)
 	}
 
-	// Auto-migrate the schema
+	// Enable UUID generation support
+	if err := db.Exec(`CREATE EXTENSION IF NOT EXISTS "pgcrypto"`).Error; err != nil {
+		return nil, fmt.Errorf("failed to enable pgcrypto extension: %v", err)
+	}
+
+	// Fix the default on the rides.id column to use gen_random_uuid()
+	if err := db.Exec(`
+		DO $$
+		BEGIN
+			IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'rides' AND column_name = 'id') THEN
+				ALTER TABLE rides ALTER COLUMN id SET DEFAULT gen_random_uuid();
+			END IF;
+		END
+		$$;
+	`).Error; err != nil {
+		return nil, fmt.Errorf("failed to set default UUID on rides.id: %v", err)
+	}
+
+	// Auto-migrate schema
 	err = db.AutoMigrate(&models.Ride{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to migrate database: %v", err)

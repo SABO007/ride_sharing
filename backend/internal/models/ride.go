@@ -1,9 +1,11 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 type Ride struct {
-	ID          string    `json:"id" gorm:"primaryKey"`
+	ID          string    `json:"id" gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 	From        string    `json:"from"`
 	To          string    `json:"to"`
 	Date        string    `json:"date" gorm:"type:date"`
@@ -12,7 +14,7 @@ type Ride struct {
 	Seats       int       `json:"seats"`
 	Driver      string    `json:"driver"`
 	Description string    `json:"description,omitempty"`
-	Status      string    `json:"status"` // "available", "booked", "completed"
+	Status      string    `json:"status"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }
@@ -22,3 +24,7 @@ type Location struct {
 	Longitude float64 `json:"longitude"`
 	Address   string  `json:"address"`
 }
+
+// // If you want pickup/drop locations inside Ride:
+// PickupLocation Location `gorm:"embedded;embeddedPrefix:pickup_" json:"pickup_location"`
+// DropLocation   Location `gorm:"embedded;embeddedPrefix:drop_" json:"drop_location"`

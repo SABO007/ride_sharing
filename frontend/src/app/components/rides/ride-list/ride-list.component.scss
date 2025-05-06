@@ -1,99 +1,145 @@
 :host {
   display: block;
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(135deg, #f8fbff, #e3f2fd);
+  padding: 2rem 1rem;
 }
 
+// ===== Ride Selector Tabs =====
 .ride-selector {
   display: flex;
   justify-content: center;
-  margin-bottom: 2rem;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .section-tab {
-  padding: 0.75rem 1.5rem;
+  padding: 0.6rem 1.2rem;
   border-radius: 8px;
+  background-color: #ecf0f1;
+  font-weight: 600;
+  font-size: 0.95rem;
   text-decoration: none;
-  font-weight: 500;
-  color: #2c3e50;
-  border: 1px solid transparent;
-  transition: all 0.3s ease;
+  color: #34495e;
+  transition: 0.3s ease;
 
   &:hover {
-    background-color: #f3f4f6;
+    background-color: #dfe6e9;
   }
 
   &.active-section {
     background: linear-gradient(45deg, #4a90e2, #2c3e50);
     color: white;
-    border-color: #2c3e50;
-    font-weight: 600;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   }
 }
 
-
-.mat-mdc-card {
-  height: 100%;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-  }
+// ===== Form Container =====
+.form-container {
+  max-width: 960px;
+  margin: auto;
+  padding: 2rem;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
 }
 
-.mat-mdc-card-header {
-  margin-bottom: 1rem;
-}
-
-.mat-mdc-card-title {
-  font-size: 1.25rem;
-  margin-bottom: 0.5rem;
-}
-
-.mat-mdc-card-subtitle {
-  color: rgba(0, 0, 0, 0.6);
-}
-
-.mat-mdc-card-content {
-  i {
-    color: #3f51b5;
-    width: 20px;
-  }
-}
-
-.mat-mdc-card-actions {
-  padding: 1rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.mat-mdc-form-field {
-  width: 100%;
-}
-
-.mat-datepicker-toggle {
-  color: black;
-}
-
-.mat-mdc-card-content {
-  padding: 1rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.search-section {
+h2 {
+  text-align: center;
+  color: #2c3e50;
+  font-weight: 700;
   margin-bottom: 2rem;
 }
 
-.empty-state {
-  text-align: center;
-  padding: 3rem 0;
-  
-  i {
-    color: rgba(0, 0, 0, 0.4);
-    margin-bottom: 1rem;
+// ===== Form Fields =====
+.form-field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1.25rem;
+}
+
+.form-field label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+  color: #2c3e50;
+}
+
+.form-field input {
+  height: 2.5rem;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  color: #2c3e50;
+  background-color: #ffffff;
+  border: 2px solid #dfe6e9;
+  border-radius: 8px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
+
+  &:focus {
+    outline: none;
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.12);
   }
 }
 
+// ===== Form Rows =====
+.form-row {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.form-row .form-field {
+  flex: 1;
+  min-width: 260px;
+}
+
+// ===== Buttons =====
+.button-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.btn {
+  display: inline-flex;         
+  align-items: center;         
+  gap: 0.5rem;  
+  padding: 0.6rem 1.2rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+  transition: 0.3s ease all;
+}
+
+.btn-primary {
+  background: linear-gradient(45deg, #4a90e2 0%, #357abd 25%, #2c3e50 50%, #1a2a3a 75%, #0f1923 100%);
+  color: white;
+
+  &:hover {
+    opacity: 0.95;
+  }
+}
+
+.btn-outline {
+  background-color: transparent;
+  border: 2px solid #dfe6e9;
+  color: #34495e;
+
+  &:hover {
+    background-color: #f1f2f6;
+  }
+}
+
+// ===== Ride Cards =====
 .card {
   transition: transform 0.2s;
+
   &:hover {
     transform: translateY(-5px);
   }
@@ -104,9 +150,91 @@
   align-items: center;
   gap: 8px;
   margin-bottom: 0.5rem;
+
+  mat-icon {
+    margin-right: 8px;
+    vertical-align: middle;
+  }
 }
 
-.card-row mat-icon {
-  margin-right: 8px;
-  vertical-align: middle;
-} 
+// ===== Ride Card Button Styling =====
+mat-card-actions {
+  button {
+    border: none;
+    transition: background 0.3s ease, transform 0.2s ease;
+
+    mat-icon {
+      margin-right: 6px;
+    }
+  }
+
+  // Book Now - gradient style
+  .mat-raised-button {
+    background: linear-gradient(45deg, #4a90e2, #2c3e50);
+    color: white;
+
+    &:hover {
+      opacity: 0.95;
+      transform: translateY(-1px);
+    }
+
+    mat-icon {
+      color: white;
+    }
+  }
+
+  // View Details - white with dark border
+  .mat-stroked-button {
+    background-color: white;
+    color: #2c3e50 !important;;
+    border: 2px solid #2c3e50;
+
+    &:hover {
+      background-color: #f4f6f8;
+    }
+
+    mat-icon {
+      color: #2c3e50;
+    }
+  }
+}
+
+
+
+// ===== States =====
+.text-center {
+  text-align: center;
+}
+
+.text-muted {
+  color: #7f8c8d;
+}
+
+.mt-3 {
+  margin-top: 1rem;
+}
+
+.py-5 {
+  padding: 3rem 0;
+}
+
+// ===== Responsive Layout =====
+@media (max-width: 600px) {
+  .form-container {
+    padding: 1.25rem;
+  }
+
+  .form-row {
+    flex-direction: column;
+  }
+
+  .button-row {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .ride-selector {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+}

@@ -1,79 +1,60 @@
 <div class="container fade-in">
-  <div class="ride-selector d-flex gap-3 mb-4">
-    <a
-      routerLink="/rides"
-      routerLinkActive="active-section"
-      [routerLinkActiveOptions]="{ exact: true }"
-      class="section-tab"
-    >
+  <div class="ride-selector">
+    <a routerLink="/rides" routerLinkActive="active-section" [routerLinkActiveOptions]="{ exact: true }" class="section-tab">
       Find a Ride
     </a>
-    <a
-      routerLink="/rides/new"
-      routerLinkActive="active-section"
-      class="section-tab"
-    >
+    <a routerLink="/rides/new" routerLinkActive="active-section" class="section-tab">
       Offer a Ride
     </a>
   </div>
-  <div class="card shadow-sm mb-4">
-    <div class="card-body">
-      <h2 class="card-title text-primary mb-4">Find Available Rides</h2>
-      <div class="row g-3">
-        <div class="col-md-3">
-          <mat-form-field appearance="outline" class="w-100">
-            <mat-label>From</mat-label>
-            <input matInput [(ngModel)]="searchParams.from" placeholder="Enter starting location">
-            <mat-icon matSuffix>location_on</mat-icon>
-          </mat-form-field>
+
+  <div class="form-container wide">
+    <h2 class="text-center text-primary mb-4">Find Available Rides</h2>
+    <form>
+      <div class="form-row">
+        <div class="form-field">
+          <label for="from">From</label>
+          <input id="from" name="from" type="text" [(ngModel)]="searchParams.from" required placeholder="Enter starting location" />
         </div>
-        <div class="col-md-3">
-          <mat-form-field appearance="outline" class="w-100">
-            <mat-label>To</mat-label>
-            <input matInput [(ngModel)]="searchParams.to" placeholder="Enter destination location">
-            <mat-icon matSuffix>place</mat-icon>
-          </mat-form-field>
-        </div>
-        <div class="col-md-3">
-          <mat-form-field appearance="outline" class="w-100">
-            <mat-label>Date</mat-label>
-            <input matInput [matDatepicker]="picker" [(ngModel)]="searchParams.date" [min]="today">
-            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-            <mat-datepicker #picker></mat-datepicker>
-          </mat-form-field>
-        </div>
-        <div class="col-md-3">
-          <mat-form-field appearance="outline" class="w-100">
-            <mat-label>Seats</mat-label>
-            <input matInput type="number" [(ngModel)]="searchParams.seats" min="1">
-            <mat-icon matSuffix>event_seat</mat-icon>
-          </mat-form-field>
-        </div>
-        <div class="col-md-3">
-          <mat-form-field appearance="outline" class="w-100">
-            <mat-label>Time</mat-label>
-            <input matInput type="time" [(ngModel)]="searchParams.time" name="searchTime">
-            <mat-icon matSuffix>schedule</mat-icon>
-          </mat-form-field>
+        <div class="form-field">
+          <label for="to">To</label>
+          <input id="to" name="to" type="text" [(ngModel)]="searchParams.to" required placeholder="Enter destination" />
         </div>
       </div>
-      <div class="d-flex justify-content-end gap-2 mt-3">
-        <button mat-stroked-button (click)="resetSearch()" class="icon-left">
-          <mat-icon>refresh</mat-icon>
-          Reset
+
+      <div class="form-row">
+        <div class="form-field">
+          <label for="date">Date</label>
+          <input id="date" name="date" type="date" [(ngModel)]="searchParams.date" [min]="today" />
+        </div>
+        <div class="form-field">
+          <label for="time">Time</label>
+          <input id="time" name="time" type="time" [(ngModel)]="searchParams.time" />
+        </div>
+        <div class="form-field">
+          <label for="seats">Seats</label>
+          <input id="seats" name="seats" type="number" [(ngModel)]="searchParams.seats" min="1" />
+        </div>
+      </div>
+
+      <div class="button-row">
+        <button type="button" class="btn btn-outline" (click)="resetSearch()">
+          <mat-icon>refresh</mat-icon> Reset
         </button>
-        <button mat-raised-button color="primary" (click)="searchRides()" class="icon-left">
-          <mat-icon>search</mat-icon>
-          Search
+        <button type="button" class="btn btn-primary" (click)="searchRides()">
+          <mat-icon>search</mat-icon> Search
         </button>
       </div>
-    </div>
+    </form>
   </div>
 
-  <!-- Results Section -->
-  <div class="row g-4">
+  <!-- Results -->
+  <div class="row g-4 mt-4">
+    <div class="col-md-12">
+      <h3 class="text-center text-primary mb-4">Available Rides</h3>
+    </div>
     <div class="col-md-4" *ngFor="let ride of rides">
-      <mat-card class="h-100 shadow-sm">
+      <mat-card class="h-100 card">
         <mat-card-header>
           <mat-card-title class="text-primary card-row">
             <mat-icon class="me-2">directions_car</mat-icon>
@@ -81,59 +62,51 @@
           </mat-card-title>
           <mat-card-subtitle class="card-row">
             <mat-icon class="me-1">event</mat-icon>
-            <strong>Date & Time:</strong>
-            {{ ride.date | date:'MMM d, y':'UTC' }},
-            {{ ride.time }}
+            <strong>Date & Time:</strong> {{ ride.date | date:'MMM d, y' }}, {{ ride.time }}
           </mat-card-subtitle>
         </mat-card-header>
         <mat-card-content>
-          <div class="my-3">
-            <p class="mb-2 card-row">
-              <mat-icon class="me-2">person</mat-icon>
-              <strong>Driver:</strong> {{ ride.driver }}
-            </p>
-            <p class="mb-2 card-row">
-              <mat-icon class="me-2">event_seat</mat-icon>
-              <strong>Available Seats:</strong> {{ ride.seats }}
-            </p>
-            <p class="mb-2 card-row">
-              <mat-icon class="me-2">attach_money</mat-icon>
-              <strong>Price:</strong> ${{ ride.price }}
-            </p>
-            <p class="mb-0 card-row" *ngIf="ride.description">
-              <mat-icon class="me-2">info</mat-icon>
-              {{ ride.description }}
-            </p>
-          </div>
+          <p class="mb-2 card-row">
+            <mat-icon class="me-2">person</mat-icon>
+            <strong>Driver:</strong> {{ ride.driver }}
+          </p>
+          <p class="mb-2 card-row">
+            <mat-icon class="me-2">event_seat</mat-icon>
+            <strong>Available Seats:</strong> {{ ride.seats }}
+          </p>
+          <p class="mb-2 card-row">
+            <mat-icon class="me-2">attach_money</mat-icon>
+            <strong>Price:</strong> ${{ ride.price }}
+          </p>
+          <p class="mb-0 card-row" *ngIf="ride.description">
+            <mat-icon class="me-2">info</mat-icon>
+            {{ ride.description }}
+          </p>
         </mat-card-content>
         <mat-card-actions align="end" class="p-3">
-          <button mat-stroked-button color="primary" [routerLink]="['/rides', ride.id]" class="icon-left">
-            <mat-icon>visibility</mat-icon>
-            View Details
+          <button mat-stroked-button [routerLink]="['/rides', ride.id]" class="icon-left">
+            <mat-icon>visibility</mat-icon> View Details
           </button>
-          <button mat-raised-button color="primary" class="icon-left">
-            <mat-icon>book_online</mat-icon>
-            Book Now
+          <button mat-raised-button class="icon-left">
+            <mat-icon>book_online</mat-icon> Book Now
           </button>
         </mat-card-actions>
       </mat-card>
     </div>
   </div>
 
-  <!-- Loading State -->
+  <!-- States -->
   <div class="text-center py-5" *ngIf="loading">
     <mat-spinner diameter="50"></mat-spinner>
     <p class="mt-3 text-muted">Loading rides...</p>
   </div>
 
-  <!-- Empty State -->
   <div class="text-center py-5" *ngIf="!loading && rides.length === 0">
-    <mat-icon class="text-muted" style="font-size: 48px; height: 48px; width: 48px;">directions_car</mat-icon>
+    <mat-icon class="text-muted" style="font-size: 48px;">directions_car</mat-icon>
     <h3 class="mt-3">There are no current rides!</h3>
     <p class="text-muted">Try adjusting your search criteria or check back later.</p>
     <button mat-raised-button color="primary" routerLink="/rides/new" class="icon-left mt-3">
-      <mat-icon>add</mat-icon>
-      Offer a Ride
+      <mat-icon>add</mat-icon> Offer a Ride
     </button>
   </div>
-</div> 
+</div>

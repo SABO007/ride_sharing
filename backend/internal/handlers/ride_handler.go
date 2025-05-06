@@ -52,16 +52,16 @@ func (h *RideHandler) CreateRide(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *RideHandler) GetRides(w http.ResponseWriter, r *http.Request) {
-	log.Printf("Received GET request for all rides")
+	log.Printf("Received GET request for recent rides")
 
 	var rides []models.Ride
-	if err := h.db.Find(&rides).Error; err != nil {
-		log.Printf("Error getting rides: %v", err)
+	if err := h.db.Order("created_at DESC").Limit(6).Find(&rides).Error; err != nil {
+		log.Printf("Error getting recent rides: %v", err)
 		http.Error(w, "Failed to get rides", http.StatusInternalServerError)
 		return
 	}
 
-	log.Printf("Successfully retrieved %d rides", len(rides))
+	log.Printf("Successfully retrieved %d recent rides", len(rides))
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(rides)
 }
