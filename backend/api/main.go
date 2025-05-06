@@ -64,6 +64,11 @@ func main() {
 	router.HandleFunc("/rides", rideHandler.CreateRide).Methods("POST")
 	router.HandleFunc("/rides", rideHandler.GetRides).Methods("GET")
 
+	// Footer links
+	router.HandleFunc("/about", handlers.AboutHandler).Methods("GET")
+	router.HandleFunc("/contact", handlers.ContactHandler).Methods("GET")
+	router.HandleFunc("/safety", handlers.PrivacyHandler).Methods("GET")
+
 	ridesRouter := router.PathPrefix("/rides").Subrouter()
 	ridesRouter.HandleFunc("/find", rideHandler.FindRides).Methods("GET")
 	ridesRouter.HandleFunc("/{id:[0-9a-fA-F-]+}", rideHandler.GetRide).Methods("GET")

@@ -1,36 +1,7 @@
-<!-- Main Content -->
 <app-navbar></app-navbar>
+
 <main class="min-vh-100">
   <router-outlet></router-outlet>
 </main>
 
-<!-- Footer -->
-<footer class="bg-light py-4 mt-4">
-  <div class="container">
-    <div class="row">
-      <div class="col-md-6">
-        <h5 class="text-primary">RideShare</h5>
-        <p class="text-muted">Connecting people through shared journeys</p>
-      </div>
-      <div class="col-md-3">
-        <h6>Quick Links</h6>
-        <ul class="list-unstyled">
-          <li><a routerLink="/" class="text-muted">Home</a></li>
-          <li><a routerLink="/rides" class="text-muted">Find Rides</a></li>
-          <li><a routerLink="/rides/new" class="text-muted">Offer Ride</a></li>
-        </ul>
-      </div>
-      <div class="col-md-3">
-        <h6>Contact</h6>
-        <ul class="list-unstyled">
-          <li><a href="mailto:contact&#64;rideshare.com" class="text-muted">contact&#64;rideshare.com</a></li>
-          <li><a href="tel:+1234567890" class="text-muted">+1 (234) 567-890</a></li>
-        </ul>
-      </div>
-    </div>
-    <hr>
-    <div class="text-center text-muted">
-      <small>&copy; 2024 RideShare. All rights reserved.</small>
-    </div>
-  </div>
-</footer> 
+<app-footer></app-footer>

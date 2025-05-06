@@ -9,17 +9,17 @@ export const routes: Routes = [
   {
     path: '',
     component: HomeComponent,
-    title: 'Home - Ride Sharing'
+    title: 'Home - GatoRide'
   },
   {
     path: 'rides',
     component: RideListComponent,
-    title: 'Find Rides - Ride Sharing'
+    title: 'Find Rides - GatoRide'
   },
   {
     path: 'rides/new',
     component: RideFormComponent,
-    title: 'Offer a Ride - Ride Sharing'
+    title: 'Offer a Ride - GatoRide'
   },
   { path: 'login', component: LoginComponent },
   { path: 'signup', component: SignupComponent },
@@ -28,5 +28,16 @@ export const routes: Routes = [
     path: '**',
     redirectTo: '',
     pathMatch: 'full'
+  },
+  {
+    path: 'about', redirectTo:'/about', title: 'About - GatoRide'
+  },
+  {
+    path: 'contact', redirectTo:'/contact', title: 'Contact - GatoRide'
+  },
+  {
+    path: 'safety', redirectTo:'/safety', title: 'Safety - GatoRide'
   }
+
+
 ];
