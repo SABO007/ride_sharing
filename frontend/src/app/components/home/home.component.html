@@ -1,9 +1,18 @@
 <div class="home-container">
   <section class="slideshow-container">
     <div class="slideshow" [style.background-image]="'url(' + slides[currentIndex].image + ')'">
-      <div class="slideshow-content">
-        <h1 class="title">{{ slides[currentIndex].title }}</h1>
-        <p class="description">{{ slides[currentIndex].description }}</p>
+      <div class="container">
+        <div class="row">
+          <!-- Left side content -->
+          <div class="col-md-6">
+            <div class="slideshow-content">
+              <h1 class="title">{{ slides[currentIndex].title }}</h1>
+              <p class="description">{{ slides[currentIndex].description }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="buttons align-items-center justify-content-center">
         <div class="cta-container">
           <a routerLink="/rides" class="btn btn-light btn-lg me-3">Find a Ride</a>
           <a routerLink="/rides/new" class="btn btn-outline-light btn-lg">Offer a Ride</a>
