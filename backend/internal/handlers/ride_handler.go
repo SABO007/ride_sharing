@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"ride_sharing/backend/internal/models"
+	"time"
 
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
@@ -128,25 +130,89 @@ func (h *RideHandler) FindRides(w http.ResponseWriter, r *http.Request) {
 	to := r.URL.Query().Get("to")
 	date := r.URL.Query().Get("date")
 	timeParam := r.URL.Query().Get("time")
-	log.Printf("Searching for rides from %s to %s on %s after %s", from, to, date, timeParam)
+	seatsParam := r.URL.Query().Get("seats")
+	maxPriceParam := r.URL.Query().Get("maxPrice")
 
+	// Log all search parameters
+	log.Printf("Search Parameters:")
+	log.Printf("- From: %s", from)
+	log.Printf("- To: %s", to)
+	log.Printf("- Date: %s", date)
+	log.Printf("- Time: %s", timeParam)
+	log.Printf("- Seats: %s", seatsParam)
+	log.Printf("- MaxPrice: %s", maxPriceParam)
+
+	// Validate required parameters
 	if from == "" || to == "" || date == "" {
 		http.Error(w, "Missing from, to, or date parameter", http.StatusBadRequest)
 		return
 	}
 
-	var rides []models.Ride
-	// Use COLLATE "C" for case-sensitive matching in PostgreSQL
-	query := h.db.Where("\"from\" COLLATE \"C\" = ? AND \"to\" COLLATE \"C\" = ?", from, to)
-
-	// Add date condition
-	if date != "" {
-		query = query.Where("date = ?", date)
+	// Validate seats parameter
+	var seats int
+	if seatsParam != "" {
+		if _, err := fmt.Sscanf(seatsParam, "%d", &seats); err != nil {
+			http.Error(w, "Invalid seats parameter", http.StatusBadRequest)
+			return
+		}
+		if seats < 1 {
+			http.Error(w, "Seats must be at least 1", http.StatusBadRequest)
+			return
+		}
+		log.Printf("Validated seats: %d", seats)
 	}
 
-	// Add time condition if provided
+	// Validate maxPrice parameter
+	var maxPrice float64
+	if maxPriceParam != "" {
+		if _, err := fmt.Sscanf(maxPriceParam, "%f", &maxPrice); err != nil {
+			http.Error(w, "Invalid maxPrice parameter", http.StatusBadRequest)
+			return
+		}
+		if maxPrice < 0 {
+			http.Error(w, "MaxPrice cannot be negative", http.StatusBadRequest)
+			return
+		}
+		log.Printf("Validated maxPrice: %.2f", maxPrice)
+	}
+
+	var rides []models.Ride
+	query := h.db.Where("\"from\" COLLATE \"C\" = ? AND \"to\" COLLATE \"C\" = ?", from, to)
+
+	var nextDayStr string
+	// Handle date filtering for current and next day
+	if date != "" {
+		// Parse the search date
+		searchDate, err := time.Parse("2006-01-02", date)
+		if err != nil {
+			log.Printf("Error parsing date: %v", err)
+			http.Error(w, "Invalid date format", http.StatusBadRequest)
+			return
+		}
+
+		// Calculate next day
+		nextDay := searchDate.AddDate(0, 0, 1)
+		nextDayStr = nextDay.Format("2006-01-02")
+
+		// Filter for both current and next day
+		query = query.Where("date IN (?, ?)", date, nextDayStr)
+		log.Printf("Filtering for dates: %s and %s", date, nextDayStr)
+	}
+
+	// Handle time filtering
 	if timeParam != "" {
-		query = query.Where("time >= ?", timeParam)
+		// For current day: show rides after the search time
+		// For next day: show all rides
+		query = query.Where("(date = ? AND time >= ?) OR date = ?", date, timeParam, nextDayStr)
+		log.Printf("Filtering for time >= %s on current date (%s), all times for next day (%s)", timeParam, date, nextDayStr)
+	}
+
+	if seatsParam != "" {
+		query = query.Where("seats >= ?", seats)
+	}
+
+	if maxPriceParam != "" {
+		query = query.Where("price <= ?", maxPrice)
 	}
 
 	if err := query.Find(&rides).Error; err != nil {
@@ -156,6 +222,18 @@ func (h *RideHandler) FindRides(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Printf("Found %d rides matching criteria", len(rides))
+
+	// Log details of each matching ride
+	for i, ride := range rides {
+		log.Printf("\nMatching Ride #%d:", i+1)
+		log.Printf("From: %s → To: %s", ride.From, ride.To)
+		log.Printf("Date & Time: %s, %s", ride.Date, ride.Time)
+		log.Printf("Driver: %s", ride.Driver)
+		log.Printf("Available Seats: %d", ride.Seats)
+		log.Printf("Price: $%.2f", ride.Price)
+		log.Printf("Status: %s", ride.Status)
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(rides)
 }

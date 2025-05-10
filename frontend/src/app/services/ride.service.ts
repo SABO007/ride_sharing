@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { catchError, tap, map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 export interface Ride {
@@ -17,6 +17,15 @@ export interface Ride {
   status: string;
   created_at?: string;
   updated_at?: string;
+}
+
+export interface SearchParams {
+  from?: string;
+  to?: string;
+  date?: string;
+  time?: string;
+  seats?: number;
+  maxPrice?: number;
 }
 
 @Injectable({
@@ -85,35 +94,76 @@ export class RideService {
     );
   }
 
-  searchRides(params: {
-    from?: string;
-    to?: string;
-    date?: string;
-    time?: string;
-  }): Observable<Ride[]> {
-    const queryParams = new URLSearchParams();
-    if (params.from) queryParams.append('from', params.from.trim());
-    if (params.to) queryParams.append('to', params.to.trim());
-    if (params.date) queryParams.append('date', params.date.trim());
-    if (params.time) queryParams.append('time', params.time?.trim() || '');
+  /**
+   * Extract valid search parameters, preserving explicitly set values
+   * @param params The search parameters object
+   * @returns Cleaned search parameters object
+   */
+  extractValidSearchParams(params: SearchParams): SearchParams {
+    const validParams: SearchParams = {};
+    
+    if (params.from) validParams.from = params.from.trim();
+    if (params.to) validParams.to = params.to.trim();
+    if (params.date) validParams.date = params.date.trim();
+    if (params.time) validParams.time = params.time.trim();
+    
+    // Validate seats parameter
+    if (params.seats !== undefined) {
+      const seats = Number(params.seats);
+      if (isNaN(seats) || seats < 1) {
+        console.warn('Invalid seats value:', params.seats, 'using default value 1');
+        validParams.seats = 1;
+      } else {
+        validParams.seats = Math.floor(seats); // Ensure integer value
+      }
+    }
+    
+    // Validate maxPrice parameter
+    if (params.maxPrice !== undefined) {
+      const maxPrice = Number(params.maxPrice);
+      if (isNaN(maxPrice) || maxPrice < 0) {
+        console.warn('Invalid maxPrice value:', params.maxPrice, 'using default value 1000');
+        validParams.maxPrice = 1000;
+      } else {
+        validParams.maxPrice = maxPrice;
+      }
+    }
+    
+    return validParams;
+  }
 
-    console.log('Searching rides with params:', {
-      from: params.from,
-      to: params.to,
-      date: params.date,
-      time: params.time
+  searchRides(params: SearchParams): Observable<Ride[]> {
+    const validParams = this.extractValidSearchParams(params);
+    const queryParams = new URLSearchParams();
+    
+    // Add all valid parameters to the query string
+    Object.entries(validParams).forEach(([key, value]) => {
+      queryParams.append(key, value.toString());
     });
+    
+    console.log('Searching with validated params:', validParams);
 
     return this.http.get<Ride[]>(`${this.apiUrl}/find?${queryParams}`).pipe(
-      tap(rides => console.log('Search results:', rides)),
+      tap(rides => console.log('Search results before filtering:', rides)),
+      map(rides => {
+        // Filter rides based on seats and maxPrice
+        return rides.filter(ride => {
+          const meetsSeatsRequirement = !validParams.seats || ride.seats >= validParams.seats;
+          const meetsPriceRequirement = !validParams.maxPrice || ride.price <= validParams.maxPrice;
+          return meetsSeatsRequirement && meetsPriceRequirement;
+        });
+      }),
+      tap(filteredRides => console.log('Search results after filtering:', filteredRides)),
       catchError(this.handleError)
     );
   }
 
   getPlaceSuggestions(input: string): Observable<any[]> {
-    return this.http.get<any>(`/api/places-autocomplete`, { params: { input } }).pipe(
-      tap(res => console.log('Backend Places API response:', res)),
+    return this.http.get<any[]>(`${this.apiUrl}/places-autocomplete`, { 
+      params: { input } 
+    }).pipe(
+      tap(suggestions => console.log('Place suggestions:', suggestions)),
       catchError(this.handleError)
     );
   }
-} 
+}

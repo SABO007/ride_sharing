@@ -1,4 +1,7 @@
 <div class="container fade-in">
+  <!-- Add backdrop overlay -->
+  <div class="filter-backdrop" [class.show]="showFilters" (click)="toggleFilters()"></div>
+
   <div class="ride-selector">
     <a routerLink="/rides" routerLinkActive="active-section" [routerLinkActiveOptions]="{ exact: true }" class="section-tab">
       Find a Ride
@@ -6,11 +9,17 @@
     <a routerLink="/rides/new" routerLinkActive="active-section" class="section-tab">
       Offer a Ride
     </a>
+    <button class="filter-toggle" (click)="toggleFilters()">
+      <mat-icon>filter_list</mat-icon>
+      <span class="filter-values">
+        Filter
+      </span>
+    </button>
   </div>
 
   <div class="form-container wide">
     <h2 class="text-center text-primary mb-4">Find Available Rides</h2>
-    <form>
+    <form (ngSubmit)="searchRides()">
       <div class="form-row">
         <div class="form-field">
           <label for="from">From</label>
@@ -31,17 +40,59 @@
           <label for="time">Time</label>
           <input id="time" name="time" type="time" [(ngModel)]="searchParams.time" />
         </div>
-        <div class="form-field">
-          <label for="seats">Seats</label>
-          <input id="seats" name="seats" type="number" [(ngModel)]="searchParams.seats" min="1" />
+      </div>
+
+    <!-- Filter Panel -->
+    <div class="filter-panel" [class.show]="showFilters" [class.hidden]="!showFilters">
+      <div class="filter-header">
+        <h3>Filters</h3>
+        <button class="close-filters" (click)="toggleFilters()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="filter-content">
+        <!-- Seats Slider -->
+        <div class="form-field seats-slider-field">
+          <label>
+            Seats <span class="optional-label">(Optional)</span>
+            <span class="seats-value" *ngIf="seatsValue > 0">{{seatsValue}}</span>
+          </label>
+          <mat-slider
+            min="1"
+            max="6"
+            step="1"
+            discrete="true"
+            (input)="onSeatsChange($event)"
+          >
+            <input matSliderThumb [value]="seatsValue">
+          </mat-slider>
+        </div>
+
+        <!-- Max Price Slider -->
+        <div class="form-field price-slider-field">
+          <label>
+            Max Price <span class="optional-label">(Optional)</span>
+            <span class="price-value" *ngIf="maxPriceValue >= 0">${{maxPriceValue}}</span>
+          </label>
+          <mat-slider
+            min="0"
+            max="1000"
+            step="10"
+            discrete="true"
+            (input)="onPriceChange($event)"
+          >
+            <input matSliderThumb [value]="maxPriceValue">
+          </mat-slider>
         </div>
       </div>
+    </div>
 
       <div class="button-row">
         <button type="button" class="btn btn-outline" (click)="resetSearch()">
           <mat-icon>refresh</mat-icon> Reset
         </button>
-        <button type="button" class="btn btn-primary" (click)="searchRides()">
+        <button type="submit" class="btn btn-primary">
           <mat-icon>search</mat-icon> Search
         </button>
       </div>
@@ -62,7 +113,7 @@
           </mat-card-title>
           <mat-card-subtitle class="card-row">
             <mat-icon class="me-1">event</mat-icon>
-            <strong>Date & Time:</strong> {{ ride.date | date:'MMM d, y' }}, {{ ride.time }}
+            <strong>Date & Time:</strong> {{ formatDate(ride.date) }}, {{ ride.time }}
           </mat-card-subtitle>
         </mat-card-header>
         <mat-card-content>

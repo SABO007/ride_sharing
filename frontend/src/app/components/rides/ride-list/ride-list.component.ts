@@ -10,15 +10,9 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
-import { RideService, Ride } from '../../../services/ride.service';
-
-interface SearchParams {
-  from: string;
-  to: string;
-  date: Date;
-  time?: string;
-  seats: number;
-}
+import { MatSliderModule } from '@angular/material/slider';
+import { MatSliderChange } from '@angular/material/slider';
+import { RideService, Ride, SearchParams } from '../../../services/ride.service';
 
 @Component({
   selector: 'app-ride-list',
@@ -34,7 +28,8 @@ interface SearchParams {
     MatDatepickerModule,
     MatNativeDateModule,
     MatProgressSpinnerModule,
-    MatIconModule
+    MatIconModule,
+    MatSliderModule
   ],
   templateUrl: './ride-list.component.html',
   styleUrls: ['./ride-list.component.scss']
@@ -43,21 +38,26 @@ export class RideListComponent implements OnInit {
   rides: Ride[] = [];
   loading = false;
   error: string | null = null;
+  maxPriceValue: number = 0;
+  seatsValue: number = 1;
+  showFilters: boolean = false;
+  today: Date = new Date();
 
   searchParams: SearchParams = {
     from: '',
     to: '',
-    date: new Date(),
+    date: new Date().toISOString().split('T')[0],
     time: '',
-    seats: 1
+    seats: 1,
+    maxPrice: undefined
   };
-
-  today: Date = new Date();
 
   constructor(private rideService: RideService) {}
 
   ngOnInit() {
     this.loadRides();
+    this.seatsValue = this.searchParams.seats || 1;
+    this.maxPriceValue = this.searchParams.maxPrice || 1000;
   }
 
   loadRides() {
@@ -78,46 +78,63 @@ export class RideListComponent implements OnInit {
     });
   }
 
+  onSeatsChange(event: any) {
+    console.log('Seats change event:', event);
+    const value = event.target?.value || event.value;
+    if (value !== null && value !== undefined) {
+      this.seatsValue = Number(value);
+      this.searchParams.seats = this.seatsValue;
+      console.log('Updated seats value:', this.seatsValue);
+    }
+  }
+
+  onPriceChange(event: any) {
+    console.log('Price change event:', event);
+    const value = event.target?.value || event.value;
+    if (value !== null && value !== undefined) {
+      this.maxPriceValue = Number(value);
+      this.searchParams.maxPrice = this.maxPriceValue;
+      console.log('Updated price value:', this.maxPriceValue);
+    }
+  }
+
   searchRides() {
     this.loading = true;
     this.error = null;
 
-    // Validate required fields
     if (!this.searchParams.from || !this.searchParams.to) {
       this.error = 'Please enter both from and to locations';
       this.loading = false;
       return;
     }
 
-    // Format date as YYYY-MM-DD
-    const formattedDate = this.searchParams.date instanceof Date
-      ? this.searchParams.date.toISOString().split('T')[0]
-      : this.searchParams.date;
+    // Use the date directly without timezone adjustment
+    const formattedDate = this.searchParams.date;
+    console.log('Original date:', this.searchParams.date);
+    console.log('Formatted date:', formattedDate);
 
-    // Format time as HH:MM:SS if present
     let formattedTime = this.searchParams.time || '';
     if (formattedTime.length === 5) formattedTime += ':00';
     if (formattedTime.length > 8) formattedTime = formattedTime.slice(0, 8);
 
-    // If no time is specified, use current time
     if (!formattedTime) {
       const now = new Date();
       formattedTime = now.toTimeString().slice(0, 8);
     }
 
-    console.log('Searching with params:', {
+    // Prepare search parameters with explicitly set filter values
+    const searchParams: SearchParams = {
       from: this.searchParams.from,
       to: this.searchParams.to,
       date: formattedDate,
-      time: formattedTime
-    });
+      time: formattedTime,
+      seats: this.seatsValue,            
+      maxPrice: this.maxPriceValue        
+    };
 
-    this.rideService.searchRides({
-      from: this.searchParams.from,
-      to: this.searchParams.to,
-      date: formattedDate,
-      time: formattedTime
-    }).subscribe({
+    console.log('Preparing search with params:', searchParams);
+
+    this.rideService.searchRides(searchParams).subscribe({
       next: (rides) => {
         console.log('Search results:', rides);
         this.rides = rides;
@@ -131,14 +148,44 @@ export class RideListComponent implements OnInit {
     });
   }
 
+  toggleFilters() {
+    this.showFilters = !this.showFilters;
+  }
+
   resetSearch() {
     this.searchParams = {
       from: '',
       to: '',
-      date: new Date(),
+      date: new Date().toISOString().split('T')[0],
       time: '',
-      seats: 1
+      seats: 1,
+      maxPrice: undefined
     };
+    this.maxPriceValue = 1000;
+    this.seatsValue = 1;
     this.loadRides();
   }
-} 
+
+  // Add method to format date without timezone conversion
+  formatDate(dateStr: string): string {
+    try {
+      // Handle both YYYY-MM-DD and other date formats
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) {
+        console.error('Invalid date string:', dateStr);
+        return 'Invalid Date';
+      }
+      
+      // Format the date using UTC to avoid timezone issues
+      const year = date.getUTCFullYear();
+      const month = date.getUTCMonth();
+      const day = date.getUTCDate();
+      
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return `${months[month]} ${day}, ${year}`;
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Invalid Date';
+    }
+  }
+}
