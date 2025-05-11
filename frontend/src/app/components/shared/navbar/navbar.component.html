@@ -6,6 +6,18 @@
   <div class="navbar-menu">
     <ng-container *ngIf="authService.isAuthenticated() | async; else notAuthenticated">
       <div class="navbar-end">
+        <!-- Notification section -->
+        <div class="notification-section" *ngIf="isRideCreator">
+          <button mat-icon-button 
+                  [matBadge]="pendingRequestsCount" 
+                  matBadgeColor="warn" 
+                  (click)="onNotificationClick()"
+                  class="notification-button"
+                  [class.has-notifications]="pendingRequestsCount > 0">
+            <mat-icon>notifications</mat-icon>
+          </button>
+        </div>
+
         <div class="user-profile">
           <div class="avatar" *ngIf="(authService.currentUser$ | async)?.profile_image; else noImage">
             <img [src]="(authService.currentUser$ | async)?.profile_image" alt="Profile" />

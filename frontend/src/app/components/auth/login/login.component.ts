@@ -13,7 +13,8 @@ import { AuthService } from '../../../services/auth.service';
 })
 export class LoginComponent implements OnInit, OnDestroy {
   loginForm: FormGroup;
-  error: string = '';
+  loading = false;
+  error: string | null = null;
 
   slideshowImages: string[] = [
     'assets/images/ride-sharing1.png',
@@ -48,6 +49,11 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.startSlideshow();
+    this.authService.isAuthenticated().subscribe(isAuthenticated => {
+      if (isAuthenticated) {
+        this.router.navigate(['/home']);
+      }
+    });
   }
 
   ngOnDestroy(): void {
@@ -61,17 +67,24 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   onSubmit() {
-    if (this.loginForm.valid) {
-      this.authService.login(
-        this.loginForm.value.email,
-        this.loginForm.value.password
-      ).subscribe({
-        next: () => {},
-        error: (err) => {
-          this.error = err.error?.message || 'An error occurred during login';
-        }
-      });
+    if (this.loginForm.invalid) {
+      return;
     }
+
+    this.loading = true;
+    this.error = null;
+
+    const { email, password } = this.loginForm.value;
+    this.authService.login(email, password).subscribe({
+      next: () => {
+        this.loading = false;
+        this.router.navigate(['/home']);
+      },
+      error: (error) => {
+        this.loading = false;
+        this.error = error.message || 'Login failed. Please try again.';
+      }
+    });
   }
 
   onGoogleLogin() {

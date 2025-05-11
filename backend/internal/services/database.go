@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"ride_sharing/backend/internal/config"
@@ -49,10 +50,13 @@ func NewDatabase(cfg *config.Config) (*Database, error) {
 	}
 
 	// Auto-migrate schema
-	err = db.AutoMigrate(&models.Ride{})
+	log.Printf("Starting database migration...")
+	err = db.AutoMigrate(&models.Ride{}, &models.Booking{}, &models.RideHistory{}, &models.RideRequest{})
 	if err != nil {
+		log.Printf("Migration error: %v", err)
 		return nil, fmt.Errorf("failed to migrate database: %v", err)
 	}
+	log.Printf("Database migration completed successfully")
 
 	return &Database{db}, nil
 }

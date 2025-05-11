@@ -1,1 +1,2 @@
-1. Search Filter
+1. not allowing current user to book
+2. send notification

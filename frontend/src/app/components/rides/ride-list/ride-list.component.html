@@ -89,10 +89,10 @@
     </div>
 
       <div class="button-row">
-        <button type="button" class="btn btn-outline" (click)="resetSearch()">
-          <mat-icon>refresh</mat-icon> Reset
+        <button type="button" class="outline-btn ride-btn-centered" (click)="clearSearch()">
+          <mat-icon>refresh</mat-icon> Clear
         </button>
-        <button type="submit" class="btn btn-primary">
+        <button type="submit" class="gradient-btn ride-btn-centered">
           <mat-icon>search</mat-icon> Search
         </button>
       </div>
@@ -100,64 +100,70 @@
   </div>
 
   <!-- Results -->
-  <div class="row g-4 mt-4">
-    <div class="col-md-12">
-      <h3 class="text-center text-primary mb-4">Available Rides</h3>
+  <div class="rides-section">
+    <div *ngIf="loading" class="loading">
+      <mat-spinner diameter="50"></mat-spinner>
+      <p class="mt-3 text-muted">Loading rides...</p>
     </div>
-    <div class="col-md-4" *ngFor="let ride of rides">
-      <mat-card class="h-100 card">
-        <mat-card-header>
-          <mat-card-title class="text-primary card-row">
-            <mat-icon class="me-2">directions_car</mat-icon>
-            {{ ride.from }} → {{ ride.to }}
-          </mat-card-title>
-          <mat-card-subtitle class="card-row">
-            <mat-icon class="me-1">event</mat-icon>
-            <strong>Date & Time:</strong> {{ formatDate(ride.date) }}, {{ ride.time }}
-          </mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-content>
-          <p class="mb-2 card-row">
-            <mat-icon class="me-2">person</mat-icon>
-            <strong>Driver:</strong> {{ ride.driver }}
-          </p>
-          <p class="mb-2 card-row">
-            <mat-icon class="me-2">event_seat</mat-icon>
-            <strong>Available Seats:</strong> {{ ride.seats }}
-          </p>
-          <p class="mb-2 card-row">
-            <mat-icon class="me-2">attach_money</mat-icon>
-            <strong>Price:</strong> ${{ ride.price }}
-          </p>
-          <p class="mb-0 card-row" *ngIf="ride.description">
-            <mat-icon class="me-2">info</mat-icon>
-            {{ ride.description }}
-          </p>
-        </mat-card-content>
-        <mat-card-actions align="end" class="p-3">
-          <button mat-stroked-button [routerLink]="['/rides', ride.id]" class="icon-left">
-            <mat-icon>visibility</mat-icon> View Details
-          </button>
-          <button mat-raised-button class="icon-left">
-            <mat-icon>book_online</mat-icon> Book Now
-          </button>
-        </mat-card-actions>
-      </mat-card>
+
+    <div *ngIf="error" class="error">
+      {{ error }}
     </div>
-  </div>
 
-  <!-- States -->
-  <div class="text-center py-5" *ngIf="loading">
-    <mat-spinner diameter="50"></mat-spinner>
-    <p class="mt-3 text-muted">Loading rides...</p>
-  </div>
+    <div *ngIf="!loading && !error && filteredRides.length === 0" class="no-rides">
+      <mat-icon class="text-muted" style="font-size: 48px;">directions_car</mat-icon>
+      <h3 class="mt-3">No rides found!</h3>
+      <p class="text-muted">Try adjusting your search criteria or check back later.</p>
+    </div>
 
-  <div class="text-center py-5" *ngIf="!loading && rides.length === 0">
-    <mat-icon class="text-muted" style="font-size: 48px;">directions_car</mat-icon>
-    <h3 class="mt-3">There are no current rides!</h3>
-    <p class="text-muted">Try adjusting your search criteria or check back later.</p>
-    <button mat-raised-button color="primary" routerLink="/rides/new" class="icon-left mt-3">
-      <mat-icon>add</mat-icon> Offer a Ride
-    </button>
+    <div class="rides-grid" *ngIf="!loading && !error && filteredRides.length > 0">
+      <div class="ride-card" *ngFor="let ride of filteredRides">
+        <div class="ride-header">
+          <h3>{{ ride.from }} → {{ ride.to }}</h3>
+          <span class="price">${{ ride.price }}</span>
+        </div>
+
+        <div class="ride-details">
+          <p>
+            <mat-icon>event</mat-icon>
+            <strong>Date:</strong> {{ formatDate(ride.date) }}
+          </p>
+          <p>
+            <mat-icon>schedule</mat-icon>
+            <strong>Time:</strong> {{ ride.time }}
+          </p>
+          <p>
+            <mat-icon>event_seat</mat-icon>
+            <strong>Seats Available:</strong> {{ ride.seats || ride.availableSeats }}
+          </p>
+          <p>
+            <mat-icon>attach_money</mat-icon>
+            <strong>Price per Seat:</strong> ${{ ride.price }}
+          </p>
+          <p>
+            <mat-icon>person</mat-icon>
+            <strong>Driver Name:</strong> {{ ride.driver || ride.driverName }}
+          </p>
+          <p *ngIf="ride.carDetails">
+            <mat-icon>directions_car</mat-icon>
+            <strong>Car:</strong>
+            {{ ride.carDetails.model }}, {{ ride.carDetails.color }}, {{ ride.carDetails.licensePlate }}
+          </p>
+          <p *ngIf="ride.description">
+            <mat-icon>info</mat-icon>
+            <strong>Description:</strong> {{ ride.description }}
+          </p>
+        </div>
+
+        <div class="ride-actions-centered">
+          <a [routerLink]="['/rides/book', ride.id]" class="ride-btn-centered gradient-btn">
+            Book Now
+          </a>
+          <a [routerLink]="['/rides', ride.id]" class="ride-btn-centered outline-btn">
+            View Details
+          </a>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

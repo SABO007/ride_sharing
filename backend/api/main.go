@@ -74,6 +74,10 @@ func main() {
 	ridesRouter.HandleFunc("/{id:[0-9a-fA-F-]+}", rideHandler.GetRide).Methods("GET")
 	ridesRouter.HandleFunc("/{id:[0-9a-fA-F-]+}", rideHandler.UpdateRide).Methods("PUT")
 	ridesRouter.HandleFunc("/{id:[0-9a-fA-F-]+}", rideHandler.DeleteRide).Methods("DELETE")
+	ridesRouter.HandleFunc("/{id:[0-9a-fA-F-]+}/book", rideHandler.BookRide).Methods("POST")
+	ridesRouter.HandleFunc("/{id:[0-9a-fA-F-]+}/request", rideHandler.CreateRideRequest).Methods("POST")
+	ridesRouter.HandleFunc("/requests", rideHandler.GetPendingRequests).Methods("GET")
+	ridesRouter.HandleFunc("/requests/{requestId:[0-9a-fA-F-]+}", rideHandler.HandleRideRequest).Methods("PUT")
 
 	router.HandleFunc("/places-autocomplete", placesHandler.Autocomplete).Methods("GET")
 
@@ -101,7 +105,7 @@ func main() {
 	}
 
 	log.Printf("Server starting on port %s", port)
-	log.Printf("API endpoint: http://localhost:%s/api", port)
+	log.Printf("API endpoint: http://localhost:%s", port)
 	if err := http.ListenAndServe(":"+port, handler); err != nil {
 		log.Fatal(err)
 	}

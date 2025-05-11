@@ -7,8 +7,6 @@
   border: 2px solid #2c3e50;
   backdrop-filter: blur(8px);
   color: white;
-  border: 2px solid #2c3e50;
-
 }
 
 .navbar-brand {
@@ -115,5 +113,70 @@
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     margin-top: 1rem;
+  }
+}
+
+.ride-creator-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-right: 16px;
+
+  .notification-button {
+    color: white;
+    
+    mat-icon {
+      color: white;
+    }
+  }
+
+  a[mat-button] {
+    color: white;
+    
+    mat-icon {
+      color: white;
+    }
+  }
+}
+
+.notification-section {
+  display: flex;
+  align-items: center;
+  margin-right: 16px;
+
+  .notification-button {
+    color: white;
+    transition: transform 0.2s ease;
+    
+    &:hover {
+      transform: scale(1.1);
+    }
+
+    &.has-notifications {
+      animation: pulse 2s infinite;
+    }
+
+    mat-icon {
+      color: white;
+    }
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+::ng-deep {
+  .mat-badge-content {
+    background-color: #f44336;
+    font-weight: bold;
   }
 } 

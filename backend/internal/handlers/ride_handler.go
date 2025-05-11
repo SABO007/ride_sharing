@@ -237,3 +237,361 @@ func (h *RideHandler) FindRides(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(rides)
 }
+
+func (h *RideHandler) BookRide(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	rideId := vars["id"]
+	log.Printf("Received POST request to book ride ID: %s", rideId)
+
+	// Start a transaction
+	tx := h.db.Begin()
+	if tx.Error != nil {
+		log.Printf("Error starting transaction: %v", tx.Error)
+		http.Error(w, "Failed to process booking", http.StatusInternalServerError)
+		return
+	}
+
+	// Get the ride
+	var ride models.Ride
+	if err := tx.First(&ride, "id = ?", rideId).Error; err != nil {
+		tx.Rollback()
+		log.Printf("Error finding ride: %v", err)
+		http.Error(w, "Ride not found", http.StatusNotFound)
+		return
+	}
+
+	var booking models.Booking
+	if err := json.NewDecoder(r.Body).Decode(&booking); err != nil {
+		tx.Rollback()
+		log.Printf("Error decoding request body: %v", err)
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// IMPORTANT: Check if user is trying to book their own ride
+	if booking.PassengerID == ride.Driver {
+		tx.Rollback()
+		log.Printf("Blocked attempt to book own ride: PassengerID %s matches Driver %s", booking.PassengerID, ride.Driver)
+		http.Error(w, "You cannot book your own ride", http.StatusForbidden)
+		return
+	}
+
+	// Check if ride is available
+	if ride.Status != "available" {
+		tx.Rollback()
+		http.Error(w, "Ride is not available", http.StatusBadRequest)
+		return
+	}
+
+	// Validate number of seats
+	if booking.Passengers > ride.Seats {
+		tx.Rollback()
+		http.Error(w, "Not enough seats available", http.StatusBadRequest)
+		return
+	}
+
+	// Set booking details
+	booking.RideID = rideId
+	booking.Status = "confirmed"
+	booking.CreatedAt = time.Now()
+	booking.UpdatedAt = time.Now()
+
+	// Create the booking
+	if err := tx.Create(&booking).Error; err != nil {
+		tx.Rollback()
+		log.Printf("Error creating booking: %v", err)
+		http.Error(w, "Failed to create booking", http.StatusInternalServerError)
+		return
+	}
+
+	// Update ride seats
+	remainingSeats := ride.Seats - booking.Passengers
+	log.Printf("Updating ride seats: %d - %d = %d", ride.Seats, booking.Passengers, remainingSeats)
+
+	if remainingSeats <= 0 {
+		// Move ride to history
+		rideHistory := models.RideHistory{
+			RideID:      ride.ID,
+			From:        ride.From,
+			To:          ride.To,
+			Date:        ride.Date,
+			Time:        ride.Time,
+			Price:       ride.Price,
+			Seats:       0,
+			Driver:      ride.Driver,
+			Description: ride.Description,
+			Status:      "completed",
+			CreatedAt:   ride.CreatedAt,
+			UpdatedAt:   ride.UpdatedAt,
+			CompletedAt: time.Now(),
+		}
+
+		if err := tx.Create(&rideHistory).Error; err != nil {
+			tx.Rollback()
+			log.Printf("Error creating ride history: %v", err)
+			http.Error(w, "Failed to process booking", http.StatusInternalServerError)
+			return
+		}
+
+		if err := tx.Delete(&ride).Error; err != nil {
+			tx.Rollback()
+			log.Printf("Error deleting ride: %v", err)
+			http.Error(w, "Failed to process booking", http.StatusInternalServerError)
+			return
+		}
+	} else {
+		ride.Seats = remainingSeats
+		if err := tx.Save(&ride).Error; err != nil {
+			tx.Rollback()
+			log.Printf("Error updating ride: %v", err)
+			http.Error(w, "Failed to process booking", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	// Commit the transaction
+	if err := tx.Commit().Error; err != nil {
+		log.Printf("Error committing transaction: %v", err)
+		http.Error(w, "Failed to process booking", http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("Successfully processed booking for ride %s", rideId)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(booking)
+}
+
+func (h *RideHandler) CreateRideRequest(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	rideId := vars["id"]
+	log.Printf("Received POST request to create ride request for ride ID: %s", rideId)
+
+	// Start a transaction
+	tx := h.db.Begin()
+	if tx.Error != nil {
+		log.Printf("Error starting transaction: %v", tx.Error)
+		http.Error(w, "Failed to process request", http.StatusInternalServerError)
+		return
+	}
+
+	// Get the ride
+	var ride models.Ride
+	if err := tx.First(&ride, "id = ?", rideId).Error; err != nil {
+		tx.Rollback()
+		log.Printf("Error finding ride: %v", err)
+		http.Error(w, "Ride not found", http.StatusNotFound)
+		return
+	}
+
+	// Check if ride is available
+	if ride.Status != "available" {
+		tx.Rollback()
+		http.Error(w, "Ride is not available", http.StatusBadRequest)
+		return
+	}
+
+	var request models.RideRequest
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		tx.Rollback()
+		log.Printf("Error decoding request body: %v", err)
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Validate number of seats
+	if request.Passengers > ride.Seats {
+		tx.Rollback()
+		http.Error(w, "Not enough seats available", http.StatusBadRequest)
+		return
+	}
+
+	// Set request details
+	request.RideID = rideId
+	request.Status = "pending"
+	request.CreatedAt = time.Now()
+	request.UpdatedAt = time.Now()
+
+	// Create the request
+	if err := tx.Create(&request).Error; err != nil {
+		tx.Rollback()
+		log.Printf("Error creating ride request: %v", err)
+		http.Error(w, "Failed to create ride request", http.StatusInternalServerError)
+		return
+	}
+
+	// Commit the transaction
+	if err := tx.Commit().Error; err != nil {
+		log.Printf("Error committing transaction: %v", err)
+		http.Error(w, "Failed to process request", http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("Successfully created ride request for ride %s", rideId)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(request)
+}
+
+func (h *RideHandler) HandleRideRequest(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	requestId := vars["requestId"]
+	log.Printf("Received PUT request to handle ride request ID: %s", requestId)
+
+	var input struct {
+		Status string `json:"status"` // "approved" or "rejected"
+	}
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if input.Status != "approved" && input.Status != "rejected" {
+		http.Error(w, "Invalid status", http.StatusBadRequest)
+		return
+	}
+
+	// Start a transaction
+	tx := h.db.Begin()
+	if tx.Error != nil {
+		log.Printf("Error starting transaction: %v", tx.Error)
+		http.Error(w, "Failed to process request", http.StatusInternalServerError)
+		return
+	}
+
+	// Get the request
+	var request models.RideRequest
+	if err := tx.First(&request, "id = ?", requestId).Error; err != nil {
+		tx.Rollback()
+		log.Printf("Error finding request: %v", err)
+		http.Error(w, "Request not found", http.StatusNotFound)
+		return
+	}
+
+	// Check if request is already handled
+	if request.Status != "pending" {
+		tx.Rollback()
+		http.Error(w, "Request already handled", http.StatusBadRequest)
+		return
+	}
+
+	// Update request status
+	request.Status = input.Status
+	request.UpdatedAt = time.Now()
+
+	if input.Status == "approved" {
+		// Get the ride
+		var ride models.Ride
+		if err := tx.First(&ride, "id = ?", request.RideID).Error; err != nil {
+			tx.Rollback()
+			log.Printf("Error finding ride: %v", err)
+			http.Error(w, "Ride not found", http.StatusNotFound)
+			return
+		}
+
+		// Update ride seats
+		remainingSeats := ride.Seats - request.Passengers
+		if remainingSeats <= 0 {
+			// Move ride to history
+			rideHistory := models.RideHistory{
+				RideID:      ride.ID,
+				From:        ride.From,
+				To:          ride.To,
+				Date:        ride.Date,
+				Time:        ride.Time,
+				Price:       ride.Price,
+				Seats:       0,
+				Driver:      ride.Driver,
+				Description: ride.Description,
+				Status:      "completed",
+				CreatedAt:   ride.CreatedAt,
+				UpdatedAt:   ride.UpdatedAt,
+				CompletedAt: time.Now(),
+			}
+
+			if err := tx.Create(&rideHistory).Error; err != nil {
+				tx.Rollback()
+				log.Printf("Error creating ride history: %v", err)
+				http.Error(w, "Failed to process request", http.StatusInternalServerError)
+				return
+			}
+
+			// Delete the ride
+			if err := tx.Delete(&ride).Error; err != nil {
+				tx.Rollback()
+				log.Printf("Error deleting ride: %v", err)
+				http.Error(w, "Failed to process request", http.StatusInternalServerError)
+				return
+			}
+		} else {
+			// Update the ride
+			ride.Seats = remainingSeats
+			if err := tx.Save(&ride).Error; err != nil {
+				tx.Rollback()
+				log.Printf("Error updating ride: %v", err)
+				http.Error(w, "Failed to process request", http.StatusInternalServerError)
+				return
+			}
+		}
+
+		// Create the booking
+		booking := models.Booking{
+			RideID:          request.RideID,
+			PassengerID:     request.PassengerID,
+			PickupLocation:  request.PickupLocation,
+			DropoffLocation: request.DropoffLocation,
+			Date:            request.Date,
+			Time:            request.Time,
+			Passengers:      request.Passengers,
+			SpecialRequests: request.SpecialRequests,
+			Status:          "confirmed",
+			CreatedAt:       time.Now(),
+			UpdatedAt:       time.Now(),
+		}
+
+		if err := tx.Create(&booking).Error; err != nil {
+			tx.Rollback()
+			log.Printf("Error creating booking: %v", err)
+			http.Error(w, "Failed to process request", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	// Save the updated request
+	if err := tx.Save(&request).Error; err != nil {
+		tx.Rollback()
+		log.Printf("Error updating request: %v", err)
+		http.Error(w, "Failed to process request", http.StatusInternalServerError)
+		return
+	}
+
+	// Commit the transaction
+	if err := tx.Commit().Error; err != nil {
+		log.Printf("Error committing transaction: %v", err)
+		http.Error(w, "Failed to process request", http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("Successfully handled ride request %s", requestId)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(request)
+}
+
+func (h *RideHandler) GetPendingRequests(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Received GET request for pending ride requests")
+
+	var requests []models.RideRequest
+	if err := h.db.Where("status = ?", "pending").Order("created_at DESC").Find(&requests).Error; err != nil {
+		log.Printf("Error getting pending requests: %v", err)
+		http.Error(w, "Failed to get pending requests", http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("Successfully retrieved %d pending requests", len(requests))
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(requests); err != nil {
+		log.Printf("Error encoding response: %v", err)
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
+}

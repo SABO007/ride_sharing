@@ -1,11 +1,33 @@
-import { Injectable } from '@angular/core';
+import { Injectable, PLATFORM_ID, Inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError, tap, map } from 'rxjs/operators';
+import { Observable, throwError, of } from 'rxjs';
+import { catchError, tap, map, timeout } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
+import { isPlatformServer } from '@angular/common';
 
 export interface Ride {
-  id?: string;
+  id: string;
+  driverId: string;
+  driverName: string;
+  driver: string;
+  origin: string;
+  destination: string;
+  date: string;
+  time: string;
+  availableSeats: number;
+  price: number;
+  seats: number;
+  from?: string;
+  to?: string;
+  description?: string;
+  carDetails: {
+    model: string;
+    color: string;
+    licensePlate: string;
+  };
+}
+
+export interface CreateRideDto {
   from: string;
   to: string;
   date: string;
@@ -15,8 +37,17 @@ export interface Ride {
   driver: string;
   description?: string;
   status: string;
-  created_at?: string;
-  updated_at?: string;
+}
+
+export interface Booking {
+  rideId: string;
+  passengerId: string;
+  pickupLocation: string;
+  dropoffLocation: string;
+  date: string;
+  time: string;
+  passengers: number;
+  specialRequests?: string;
 }
 
 export interface SearchParams {
@@ -28,69 +59,115 @@ export interface SearchParams {
   maxPrice?: number;
 }
 
+export interface RideRequest {
+  id: string;
+  rideId: string;
+  passengerId: string;
+  pickupLocation: string;
+  dropoffLocation: string;
+  date: string;
+  time: string;
+  passengers: number;
+  specialRequests?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: string;
+  updatedAt: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class RideService {
-  private apiUrl = 'http://localhost:8080/rides';
+  private apiUrl = 'http://localhost:8080';
   private googlePlacesUrl = 'https://maps.googleapis.com/maps/api/place/autocomplete/json';
+  private readonly TIMEOUT_MS = 60000; // Increased to 60 seconds for SSR
+  private isSSR = false;
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {
+    this.isSSR = isPlatformServer(this.platformId);
+  }
 
-  private handleError(error: HttpErrorResponse) {
-    console.error('An error occurred:', error);
-    let errorMessage = 'An error occurred. Please try again later.';
-    
-    if (error.error instanceof ErrorEvent) {
-      // Client-side error
-      errorMessage = error.error.message;
-    } else {
-      // Server-side error
-      if (error.status === 400) {
-        errorMessage = 'Invalid ride data. Please check your input.';
-      } else if (error.status === 404) {
-        errorMessage = 'Ride not found.';
-      } else if (error.status === 500) {
-        errorMessage = 'Server error. Please try again later.';
-      }
+  private handleError<T>(error: HttpErrorResponse, defaultValue: T) {
+    // During SSR, return the default value immediately without logging
+    if (this.isSSR) {
+      return of(defaultValue);
     }
     
-    return throwError(() => new Error(errorMessage));
+    console.error('An error occurred:', error);
+    let errorMessage = 'An error occurred. Please try again later.';
+    if (error.status === 400) {
+      errorMessage = 'Invalid ride data. Please check your input.';
+    } else if (error.status === 404) {
+      errorMessage = 'Ride not found.';
+    } else if (error.status === 500) {
+      errorMessage = 'Server error. Please try again later.';
+    } else if (error.status === 0) {
+      errorMessage = 'Unable to connect to the server. Please check your connection.';
+    }
+    
+    return of(defaultValue);
+  }
+
+  private addTimeout<T>(observable: Observable<T>): Observable<T> {
+    // Skip timeout during SSR
+    if (this.isSSR) {
+      return observable;
+    }
+    
+    return observable.pipe(
+      timeout(this.TIMEOUT_MS),
+      catchError(error => {
+        if (error.name === 'TimeoutError') {
+          console.warn('Request timed out');
+          return of([] as any);
+        }
+        throw error;
+      })
+    );
   }
 
   getRides(): Observable<Ride[]> {
-    return this.http.get<Ride[]>(this.apiUrl).pipe(
-      tap(rides => console.log('Fetched rides:', rides)),
-      catchError(this.handleError)
+    return this.addTimeout(
+      this.http.get<Ride[]>(`${this.apiUrl}/rides`).pipe(
+        catchError(error => this.handleError(error, []))
+      )
     );
   }
 
-  getRide(id: string): Observable<Ride> {
-    return this.http.get<Ride>(`${this.apiUrl}/${id}`).pipe(
-      tap(ride => console.log('Fetched ride:', ride)),
-      catchError(this.handleError)
+  getRideById(id: string): Observable<Ride | null> {
+    return this.addTimeout(
+      this.http.get<Ride>(`${this.apiUrl}/rides/${id}`).pipe(
+        catchError(error => this.handleError(error, null))
+      )
     );
   }
 
-  createRide(ride: Omit<Ride, 'id'>): Observable<Ride> {
-    console.log('Creating ride with data:', ride);
-    return this.http.post<Ride>(this.apiUrl, ride).pipe(
-      tap(createdRide => console.log('Created ride:', createdRide)),
-      catchError(this.handleError)
+  createRide(ride: CreateRideDto): Observable<Ride | null> {
+    return this.http.post<Ride>(`${this.apiUrl}/rides`, ride).pipe(
+      catchError(error => this.handleError(error, null))
     );
   }
 
-  updateRide(id: string, ride: Partial<Ride>): Observable<Ride> {
-    return this.http.put<Ride>(`${this.apiUrl}/${id}`, ride).pipe(
+  bookRide(booking: Booking): Observable<any> {
+    return this.http.post(`${this.apiUrl}/rides/${booking.rideId}/book`, booking).pipe(
+      catchError(error => this.handleError(error, null))
+    );
+  }
+
+  updateRide(id: string, ride: Partial<Ride>): Observable<Ride | null> {
+    return this.http.put<Ride>(`${this.apiUrl}/rides/${id}`, ride).pipe(
       tap(updatedRide => console.log('Updated ride:', updatedRide)),
-      catchError(this.handleError)
+      catchError(error => this.handleError(error, null))
     );
   }
 
   deleteRide(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
+    return this.http.delete<void>(`${this.apiUrl}/rides/${id}`).pipe(
       tap(() => console.log('Deleted ride:', id)),
-      catchError(this.handleError)
+      catchError(error => this.handleError(error, undefined))
     );
   }
 
@@ -136,25 +213,25 @@ export class RideService {
     const validParams = this.extractValidSearchParams(params);
     const queryParams = new URLSearchParams();
     
-    // Add all valid parameters to the query string
     Object.entries(validParams).forEach(([key, value]) => {
       queryParams.append(key, value.toString());
     });
     
     console.log('Searching with validated params:', validParams);
 
-    return this.http.get<Ride[]>(`${this.apiUrl}/find?${queryParams}`).pipe(
+    return this.http.get<Ride[]>(`${this.apiUrl}/rides/find?${queryParams}`).pipe(
       tap(rides => console.log('Search results before filtering:', rides)),
       map(rides => {
-        // Filter rides based on seats and maxPrice
         return rides.filter(ride => {
-          const meetsSeatsRequirement = !validParams.seats || ride.seats >= validParams.seats;
-          const meetsPriceRequirement = !validParams.maxPrice || ride.price <= validParams.maxPrice;
+          const seats = ride.availableSeats ?? ride.seats;
+          const price = ride.price;
+          const meetsSeatsRequirement = !validParams.seats || seats >= validParams.seats;
+          const meetsPriceRequirement = !validParams.maxPrice || price <= validParams.maxPrice;
           return meetsSeatsRequirement && meetsPriceRequirement;
         });
       }),
       tap(filteredRides => console.log('Search results after filtering:', filteredRides)),
-      catchError(this.handleError)
+      catchError(error => this.handleError(error, []))
     );
   }
 
@@ -163,7 +240,60 @@ export class RideService {
       params: { input } 
     }).pipe(
       tap(suggestions => console.log('Place suggestions:', suggestions)),
-      catchError(this.handleError)
+      catchError(error => this.handleError(error, []))
+    );
+  }
+
+  getPendingRequests(): Observable<RideRequest[]> {
+    // During SSR, return empty array immediately
+    if (this.isSSR) {
+      console.log('SSR detected, skipping pending requests fetch');
+      return of([]);
+    }
+
+    // Only fetch if we're in the browser
+    if (typeof window !== 'undefined') {
+      return this.addTimeout(
+        this.http.get<RideRequest[]>(`${this.apiUrl}/rides/requests`).pipe(
+          tap(requests => console.log('Received pending requests:', requests)),
+          catchError(error => {
+            console.error('Error fetching pending requests:', error);
+            if (error.status === 0 || error.name === 'TimeoutError') {
+              console.warn('Backend server is not running or request timed out');
+              return of([]); // Return empty array instead of throwing error
+            }
+            return this.handleError(error, []);
+          })
+        )
+      );
+    }
+
+    // Default to empty array for SSR
+    return of([]);
+  }
+
+  handleRideRequest(requestId: string, status: 'approved' | 'rejected'): Observable<void> {
+    return this.addTimeout(
+      this.http.put<void>(`${this.apiUrl}/rides/requests/${requestId}`, { status }).pipe(
+        tap(() => console.log(`Request ${requestId} ${status} successfully`)),
+        catchError(error => {
+          console.error(`Error handling request ${requestId}:`, error);
+          return this.handleError(error, undefined);
+        })
+      )
+    );
+  }
+
+  getRideRequests(timeFilter?: 'today' | 'week' | 'month'): Observable<any[]> {
+    const params = new URLSearchParams();
+    if (timeFilter) {
+      params.append('timeFilter', timeFilter);
+    }
+    
+    return this.addTimeout(
+      this.http.get<any[]>(`${this.apiUrl}/rides/requests?${params}`).pipe(
+        catchError(error => this.handleError(error, []))
+      )
     );
   }
 }

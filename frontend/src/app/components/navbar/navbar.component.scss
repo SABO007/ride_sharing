@@ -1,0 +1,17 @@
+::ng-deep {
+  .mat-badge-content {
+    background-color: #f44336;
+  }
+}
+
+button[mat-icon-button] {
+  margin: 0 8px;
+  
+  mat-icon {
+    color: #666;
+  }
+
+  &:hover mat-icon {
+    color: #333;
+  }
+} 

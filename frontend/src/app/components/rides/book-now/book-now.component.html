@@ -1,0 +1,167 @@
+<div class="book-now-container">
+  <div *ngIf="loading" class="loading">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading ride details...</p>
+  </div>
+
+  <div *ngIf="error" class="error">
+    {{ error }}
+  </div>
+
+  <div *ngIf="success" class="success-message">
+    Ride requested to user!
+  </div>
+
+  <div *ngIf="!loading && !error && ride && shouldRenderForm" class="booking-container">
+    <!-- Ride Details Card -->
+    <div class="ride-details-card">
+      <h2 class="card-title">Ride Details</h2>
+      <div class="ride-route">
+        <span class="ride-from">{{ ride.origin || ride.from }}</span>
+        <mat-icon>arrow_forward</mat-icon>
+        <span class="ride-to">{{ ride.destination || ride.to }}</span>
+      </div>
+      <hr>
+      <div class="ride-details-grid">
+        <div class="ride-detail-row">
+          <mat-icon>calendar_today</mat-icon>
+          <div class="detail-content">
+            <strong>Date</strong>
+            <span>{{ formatDate(ride.date) }}</span>
+          </div>
+        </div>
+        <div class="ride-detail-row">
+          <mat-icon>schedule</mat-icon>
+          <div class="detail-content">
+            <strong>Time</strong>
+            <span>{{ ride.time }}</span>
+          </div>
+        </div>
+        <div class="ride-detail-row" *ngIf="ride.driver || ride.driverName">
+          <mat-icon>person</mat-icon>
+          <div class="detail-content">
+            <strong>Driver</strong>
+            <span>{{ ride.driver || ride.driverName }}</span>
+          </div>
+        </div>
+        <div class="ride-detail-row" *ngIf="ride.carDetails">
+          <mat-icon>directions_car</mat-icon>
+          <div class="detail-content">
+            <strong>Car</strong>
+            <span>{{ ride.carDetails.model }}, {{ ride.carDetails.color }}</span>
+            <span class="license-plate">{{ ride.carDetails.licensePlate }}</span>
+          </div>
+        </div>
+        <div class="ride-detail-row" *ngIf="ride.price">
+          <mat-icon>attach_money</mat-icon>
+          <div class="detail-content">
+            <strong>Price</strong>
+            <span class="price">${{ ride.price }}</span>
+          </div>
+        </div>
+        <div class="ride-detail-row" *ngIf="ride.seats || ride.availableSeats">
+          <mat-icon>event_seat</mat-icon>
+          <div class="detail-content">
+            <strong>Seats Available</strong>
+            <span>{{ ride.seats || ride.availableSeats }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="ride-detail-row description" *ngIf="ride.description">
+        <mat-icon>info</mat-icon>
+        <div class="detail-content">
+          <strong>Description</strong>
+          <span>{{ ride.description }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Only show booking form if user is not the driver -->
+    <form *ngIf="currentUserId !== ride.driverId" (ngSubmit)="confirmBooking()" class="booking-form">
+      <h2 class="card-title">Book Your Ride</h2>
+      
+      <div class="form-group">
+        <label>Pickup Location</label>
+        <input
+          type="text"
+          [value]="ride.origin || ride.from"
+          readonly
+          class="form-control"
+        />
+      </div>
+
+      <div class="form-group">
+        <label>Dropoff Location</label>
+        <input
+          type="text"
+          [value]="ride.destination || ride.to"
+          readonly
+          class="form-control"
+        />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Date</label>
+          <input
+            type="date"
+            [value]="rideDateForInput"
+            readonly
+            class="form-control"
+          />
+        </div>
+        <div class="form-group">
+          <label>Time</label>
+          <input
+            type="time"
+            [value]="ride.time"
+            readonly
+            class="form-control"
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Number of Passengers</label>
+        <input
+          type="number"
+          [(ngModel)]="bookingDetails.passengers"
+          name="passengers"
+          min="1"
+          [max]="ride.seats || ride.availableSeats"
+          class="form-control"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label>Special Requests</label>
+        <textarea
+          [(ngModel)]="bookingDetails.specialRequests"
+          name="specialRequests"
+          class="form-control"
+          placeholder="Any special requests or requirements?"
+          rows="3"
+        ></textarea>
+      </div>
+
+      <div class="button-row">
+        <button type="button" class="outline-btn ride-btn-centered" (click)="cancelBooking()">
+          <mat-icon>close</mat-icon> Cancel
+        </button>
+        <button type="submit" class="gradient-btn ride-btn-centered">
+          <mat-icon>check_circle</mat-icon> Confirm Booking
+        </button>
+      </div>
+    </form>
+
+    <!-- Show message if user is the driver -->
+    <div *ngIf="currentUserId === ride.driverId" class="owner-message">
+      <mat-icon>info</mat-icon>
+      <p>You cannot book your own ride</p>
+      <button class="outline-btn" (click)="goToRides()">
+        <mat-icon>arrow_back</mat-icon> Back to Rides
+      </button>
+    </div>
+  </div>
+</div> 

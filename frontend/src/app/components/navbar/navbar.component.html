@@ -1,0 +1,13 @@
+<!-- Add this to your navigation menu -->
+<a mat-button routerLink="/requests" *ngIf="isAdmin">
+  <mat-icon>pending_actions</mat-icon>
+  Pending Requests
+</a>
+
+<!-- Add this where you want the notification icon to appear -->
+<button mat-icon-button [matBadge]="pendingRequestsCount" 
+        matBadgeColor="warn" 
+        (click)="goToRequests()"
+        *ngIf="isAdmin">
+  <mat-icon>notifications</mat-icon>
+</button> 

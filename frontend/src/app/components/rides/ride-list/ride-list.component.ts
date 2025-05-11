@@ -36,6 +36,7 @@ import { RideService, Ride, SearchParams } from '../../../services/ride.service'
 })
 export class RideListComponent implements OnInit {
   rides: Ride[] = [];
+  filteredRides: Ride[] = [];
   loading = false;
   error: string | null = null;
   maxPriceValue: number = 0;
@@ -68,6 +69,7 @@ export class RideListComponent implements OnInit {
       next: (rides) => {
         console.log('Received rides:', rides);
         this.rides = rides;
+        this.filteredRides = rides;
         this.loading = false;
       },
       error: (error) => {
@@ -79,22 +81,18 @@ export class RideListComponent implements OnInit {
   }
 
   onSeatsChange(event: any) {
-    console.log('Seats change event:', event);
     const value = event.target?.value || event.value;
     if (value !== null && value !== undefined) {
       this.seatsValue = Number(value);
       this.searchParams.seats = this.seatsValue;
-      console.log('Updated seats value:', this.seatsValue);
     }
   }
 
   onPriceChange(event: any) {
-    console.log('Price change event:', event);
     const value = event.target?.value || event.value;
     if (value !== null && value !== undefined) {
       this.maxPriceValue = Number(value);
       this.searchParams.maxPrice = this.maxPriceValue;
-      console.log('Updated price value:', this.maxPriceValue);
     }
   }
 
@@ -108,36 +106,25 @@ export class RideListComponent implements OnInit {
       return;
     }
 
-    // Use the date directly without timezone adjustment
-    const formattedDate = this.searchParams.date;
-    console.log('Original date:', this.searchParams.date);
-    console.log('Formatted date:', formattedDate);
-
-    let formattedTime = this.searchParams.time || '';
-    if (formattedTime.length === 5) formattedTime += ':00';
-    if (formattedTime.length > 8) formattedTime = formattedTime.slice(0, 8);
-
-    if (!formattedTime) {
-      const now = new Date();
-      formattedTime = now.toTimeString().slice(0, 8);
-    }
-
-    // Prepare search parameters with explicitly set filter values
     const searchParams: SearchParams = {
       from: this.searchParams.from,
       to: this.searchParams.to,
-      date: formattedDate,
-      time: formattedTime,
-      seats: this.seatsValue,            
-      maxPrice: this.maxPriceValue        
+      date: this.searchParams.date,
+      time: this.searchParams.time,
+      seats: this.seatsValue,
+      maxPrice: this.maxPriceValue
     };
-
-    console.log('Preparing search with params:', searchParams);
 
     this.rideService.searchRides(searchParams).subscribe({
       next: (rides) => {
         console.log('Search results:', rides);
-        this.rides = rides;
+        this.rides = rides.map(ride => ({
+          ...ride,
+          from: ride.from ?? ride.origin,
+          to: ride.to ?? ride.destination,
+          seats: ride.seats ?? ride.availableSeats
+        }));
+        this.filteredRides = this.rides;
         this.loading = false;
       },
       error: (error) => {
@@ -152,7 +139,7 @@ export class RideListComponent implements OnInit {
     this.showFilters = !this.showFilters;
   }
 
-  resetSearch() {
+  clearSearch() {
     this.searchParams = {
       from: '',
       to: '',
@@ -166,17 +153,14 @@ export class RideListComponent implements OnInit {
     this.loadRides();
   }
 
-  // Add method to format date without timezone conversion
   formatDate(dateStr: string): string {
     try {
-      // Handle both YYYY-MM-DD and other date formats
       const date = new Date(dateStr);
       if (isNaN(date.getTime())) {
         console.error('Invalid date string:', dateStr);
         return 'Invalid Date';
       }
       
-      // Format the date using UTC to avoid timezone issues
       const year = date.getUTCFullYear();
       const month = date.getUTCMonth();
       const day = date.getUTCDate();
