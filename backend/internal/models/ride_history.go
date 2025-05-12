@@ -12,6 +12,7 @@ type RideHistory struct {
 	Price       float64   `json:"price"`
 	Seats       int       `json:"seats"`
 	Driver      string    `json:"driver"`
+	DriverName  string    `json:"driverName"`
 	Description string    `json:"description,omitempty"`
 	Status      string    `json:"status"`
 	CreatedAt   time.Time `json:"createdAt"`

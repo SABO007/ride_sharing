@@ -11,6 +11,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { RideService } from '../../../services/ride.service';
+import { AuthService } from '../../../services/auth.service';
 import { debounceTime, distinctUntilChanged, switchMap, map } from 'rxjs/operators';
 import { FormControl } from '@angular/forms';
 import { Observable, of } from 'rxjs';
@@ -40,6 +41,7 @@ declare var google: any;
 export class RideFormComponent implements AfterViewInit, OnDestroy {
   ride = {
     driver: '',
+    driverName: '',
     from: '',
     to: '',
     date: '',
@@ -64,11 +66,25 @@ export class RideFormComponent implements AfterViewInit, OnDestroy {
   rideDate: Date | null = null;
   rideTime: string = '';
   today: Date = new Date();
+  currentUserId: string | null = null;
+  currentUserName: string | null = null;
 
   constructor(
     private rideService: RideService,
-    private router: Router
-  ) {}
+    private router: Router,
+    private authService: AuthService
+  ) {
+    this.authService.currentUser$.subscribe(user => {
+      if (user) {
+        this.currentUserId = user.id;
+        this.currentUserName = user.name;
+        this.ride.driver = user.id;
+        if (!this.ride.driverName) {
+          this.ride.driverName = user.name;
+        }
+      }
+    });
+  }
 
   ngAfterViewInit() {
     // Suggestions for 'from' field
@@ -131,6 +147,18 @@ export class RideFormComponent implements AfterViewInit, OnDestroy {
     this.loading = true;
     this.error = null;
 
+    if (!this.currentUserId) {
+      this.error = 'You must be logged in to create a ride';
+      this.loading = false;
+      return;
+    }
+
+    if (!this.ride.driverName) {
+      this.error = 'Driver name is required';
+      this.loading = false;
+      return;
+    }
+
     // Prevent submission if time is empty
     if (!this.rideTime) {
       this.error = 'Time is required.';
@@ -155,7 +183,9 @@ export class RideFormComponent implements AfterViewInit, OnDestroy {
     const rideToSubmit = {
       ...this.ride,
       date: this.ride.date,
-      time: this.ride.time
+      time: this.ride.time,
+      driver: this.currentUserId,
+      driverName: this.currentUserName
     };
 
     console.log('Submitting ride:', rideToSubmit);

@@ -283,10 +283,18 @@ func (h *RideHandler) BookRide(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validate number of seats
+	// Validate number of seats and provide helpful message
 	if booking.Passengers > ride.Seats {
 		tx.Rollback()
-		http.Error(w, "Not enough seats available", http.StatusBadRequest)
+		response := map[string]interface{}{
+			"error":           fmt.Sprintf("Not enough seats available. Only %d seats are available for this ride.", ride.Seats),
+			"available_seats": ride.Seats,
+			"requested_seats": booking.Passengers,
+			"excess_seats":    booking.Passengers - ride.Seats,
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(response)
 		return
 	}
 
@@ -319,6 +327,7 @@ func (h *RideHandler) BookRide(w http.ResponseWriter, r *http.Request) {
 			Price:       ride.Price,
 			Seats:       0,
 			Driver:      ride.Driver,
+			DriverName:  ride.DriverName,
 			Description: ride.Description,
 			Status:      "completed",
 			CreatedAt:   ride.CreatedAt,
@@ -502,6 +511,7 @@ func (h *RideHandler) HandleRideRequest(w http.ResponseWriter, r *http.Request) 
 				Price:       ride.Price,
 				Seats:       0,
 				Driver:      ride.Driver,
+				DriverName:  ride.DriverName,
 				Description: ride.Description,
 				Status:      "completed",
 				CreatedAt:   ride.CreatedAt,

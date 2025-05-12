@@ -41,7 +41,7 @@
           <mat-icon>person</mat-icon>
           <div class="detail-content">
             <strong>Driver</strong>
-            <span>{{ ride.driver || ride.driverName }}</span>
+            <span>{{ ride.driverName || 'Unknown' }}</span>
           </div>
         </div>
         <div class="ride-detail-row" *ngIf="ride.carDetails">
@@ -77,7 +77,7 @@
     </div>
 
     <!-- Only show booking form if user is not the driver -->
-    <form *ngIf="currentUserId !== ride.driverId" (ngSubmit)="confirmBooking()" class="booking-form">
+    <form *ngIf="currentUserId !== ride.driver" (ngSubmit)="confirmBooking()" class="booking-form">
       <h2 class="card-title">Book Your Ride</h2>
       
       <div class="form-group">
@@ -131,7 +131,11 @@
           [max]="ride.seats || ride.availableSeats"
           class="form-control"
           required
+          (input)="validatePassengers($event)"
         />
+        <div *ngIf="passengerError" class="error-message">
+          {{ passengerError }}
+        </div>
       </div>
 
       <div class="form-group">
@@ -149,14 +153,14 @@
         <button type="button" class="outline-btn ride-btn-centered" (click)="cancelBooking()">
           <mat-icon>close</mat-icon> Cancel
         </button>
-        <button type="submit" class="gradient-btn ride-btn-centered">
+        <button type="submit" class="ride-btn-centered">
           <mat-icon>check_circle</mat-icon> Confirm Booking
         </button>
       </div>
     </form>
 
     <!-- Show message if user is the driver -->
-    <div *ngIf="currentUserId === ride.driverId" class="owner-message">
+    <div *ngIf="currentUserId === ride.driver" class="owner-message">
       <mat-icon>info</mat-icon>
       <p>You cannot book your own ride</p>
       <button class="outline-btn" (click)="goToRides()">

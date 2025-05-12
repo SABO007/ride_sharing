@@ -856,6 +856,14 @@ mat-card-actions {
   font-size: 17px;
   margin-right: 0.35em;
   vertical-align: middle;
+  text-align: center;
+}
+
+.mat-icon {
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Gradient style for Book Now */

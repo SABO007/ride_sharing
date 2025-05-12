@@ -8,11 +8,6 @@
   <h2>Offer a Ride</h2>
 
   <form (ngSubmit)="onSubmit()" #rideForm="ngForm">
-    <div class="form-field">
-      <label for="driver">Driver Name</label>
-      <input id="driver" name="driver" type="text" [(ngModel)]="ride.driver" required />
-    </div>
-
     <div class="form-row">
       <div class="form-field">
         <label for="from">From</label>
@@ -47,6 +42,11 @@
         <label for="price">Price per Seat</label>
         <input id="price" name="price" type="number" [(ngModel)]="ride.price" min="0" required />
       </div>
+    </div>
+
+    <div class="form-field">
+      <label for="driverName">Driver Name</label>
+      <input id="driverName" name="driverName" type="text" [(ngModel)]="ride.driverName" required placeholder="Enter your name" />
     </div>
 
     <div class="form-field">

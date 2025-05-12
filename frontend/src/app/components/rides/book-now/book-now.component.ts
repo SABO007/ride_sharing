@@ -52,6 +52,7 @@ export class BookNowComponent implements OnInit {
     passengers: 1,
     specialRequests: ''
   };
+  passengerError: string | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -75,7 +76,7 @@ export class BookNowComponent implements OnInit {
             this.rideService.getRideById(rideId).subscribe({
               next: (ride) => {
                 if (ride) {
-                  if (this.currentUserId === ride.driverId) {
+                  if (this.currentUserId === ride.driver) {
                     this.error = 'You cannot book your own ride';
                     this.snackBar.open(this.error, 'Close', {
                       duration: 4000,
@@ -93,7 +94,7 @@ export class BookNowComponent implements OnInit {
                   this.bookingDetails.date = ride.date;
                   this.bookingDetails.time = ride.time;
   
-                  this.shouldRenderForm = true;  // ✅ Render form only now
+                  this.shouldRenderForm = true;
                 }
                 this.loading = false;
               },
@@ -109,10 +110,35 @@ export class BookNowComponent implements OnInit {
   }
   
 
+  validatePassengers(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const value = parseInt(input.value);
+    const availableSeats = this.ride?.seats || this.ride?.availableSeats || 0;
+
+    if (value > availableSeats) {
+      this.passengerError = `Not enough seats available. Only ${availableSeats} seats are available for this ride.`;
+      this.snackBar.open(this.passengerError, 'Close', {
+        duration: 4000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+        panelClass: ['error-snackbar']
+      });
+      // Reset the input value to the maximum available seats
+      this.bookingDetails.passengers = availableSeats;
+    } else {
+      this.passengerError = null;
+    }
+  }
+
   confirmBooking() {
     if (!this.rideId || !this.ride) {
       this.error = 'Invalid ride ID';
       return;
+    }
+
+    // Check if there's a passenger error
+    if (this.passengerError) {
+      return; // Don't proceed with booking if there's a validation error
     }
 
     if (this.isOwner) {

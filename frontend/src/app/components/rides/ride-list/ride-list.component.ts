@@ -13,6 +13,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatSliderChange } from '@angular/material/slider';
 import { RideService, Ride, SearchParams } from '../../../services/ride.service';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-ride-list',
@@ -43,6 +44,7 @@ export class RideListComponent implements OnInit {
   seatsValue: number = 1;
   showFilters: boolean = false;
   today: Date = new Date();
+  currentUserId: string | null = null;
 
   searchParams: SearchParams = {
     from: '',
@@ -53,28 +55,34 @@ export class RideListComponent implements OnInit {
     maxPrice: undefined
   };
 
-  constructor(private rideService: RideService) {}
+  constructor(
+    private rideService: RideService,
+    private authService: AuthService
+  ) {}
 
   ngOnInit() {
-    this.loadRides();
+    this.loading = true;
+    this.error = null;
+
+    this.authService.currentUser$.subscribe(user => {
+      if (user) {
+        this.currentUserId = user.id;
+        this.loadRides();
+      }
+    });
     this.seatsValue = this.searchParams.seats || 1;
     this.maxPriceValue = this.searchParams.maxPrice || 1000;
   }
 
   loadRides() {
-    this.loading = true;
-    this.error = null;
-    
     this.rideService.getRides().subscribe({
       next: (rides) => {
-        console.log('Received rides:', rides);
-        this.rides = rides;
-        this.filteredRides = rides;
+        // Filter out rides where the current user is the driver
+        this.filteredRides = rides.filter(ride => ride.driver !== this.currentUserId);
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error loading rides:', error);
-        this.error = 'Failed to load rides. Please try again.';
+        this.error = 'Failed to load rides. Please try again later.';
         this.loading = false;
       }
     });
@@ -124,7 +132,10 @@ export class RideListComponent implements OnInit {
           to: ride.to ?? ride.destination,
           seats: ride.seats ?? ride.availableSeats
         }));
-        this.filteredRides = this.rides;
+        // Filter out rides posted by the current user
+        this.filteredRides = this.currentUserId 
+          ? this.rides.filter(ride => ride.driver !== this.currentUserId)
+          : this.rides;
         this.loading = false;
       },
       error: (error) => {

@@ -9,10 +9,11 @@ type Ride struct {
 	From        string    `json:"from"`
 	To          string    `json:"to"`
 	Date        string    `json:"date" gorm:"type:date"`
-	Time        string    `json:"time" gorm:"type:time"`
+	Time        string    `json:"time" gorm:"type:time without time zone"`
 	Price       float64   `json:"price"`
 	Seats       int       `json:"seats"`
 	Driver      string    `json:"driver"`
+	DriverName  string    `json:"driverName"`
 	Description string    `json:"description,omitempty"`
 	Status      string    `json:"status"`
 	CreatedAt   time.Time `json:"created_at"`

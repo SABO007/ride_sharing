@@ -1,7 +1,7 @@
 .book-now-container {
   max-width: 1200px;
-  margin: 2rem auto;
-  padding: 0 1rem;
+  margin: 0 auto;
+  padding: 20px;
 }
 
 .loading {
@@ -31,11 +31,13 @@
 }
 
 .booking-container {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
   display: flex;
-  gap: 2rem;
+  gap: 8rem;
   align-items: flex-start;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: space-between;
 }
 
 .card-title {
@@ -86,7 +88,7 @@
   display: flex;
   align-items: flex-start;
   gap: 1rem;
-  padding: 0.5rem;
+  padding-left: 0.5rem;
   border-radius: 8px;
   transition: background-color 0.2s;
 
@@ -136,50 +138,39 @@
 }
 
 .booking-form {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(44,62,80,0.08);
-  padding: 1.5rem;
-  min-width: 340px;
-  max-width: 420px;
   flex: 1;
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .form-group {
-  margin-bottom: 1.2rem;
-
-  label {
-    display: block;
-    margin-bottom: 0.5rem;
-    color: #2c3e50;
-    font-weight: 500;
-  }
+  margin-bottom: 1.5rem;
 }
 
 .form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
   gap: 1rem;
+  margin-bottom: 1.5rem;
+
+  .form-group {
+    flex: 1;
+    margin-bottom: 0;
+  }
 }
 
 .form-control {
   width: 100%;
-  padding: 0.75rem 1rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
   font-size: 1rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
 
   &:focus {
     outline: none;
-    border-color: #1976d2;
-    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
-  }
-
-  &[readonly] {
-    background-color: #f8f9fa;
-    color: #718096;
-    cursor: not-allowed;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
   }
 }
 
@@ -190,26 +181,48 @@ textarea.form-control {
 
 .button-row {
   display: flex;
-  justify-content: center;
   gap: 1rem;
+  justify-content: flex-end;
   margin-top: 2rem;
 }
 
-.ride-btn-centered {
+/* Button styling for all buttons with icons */
+button, .ride-btn-centered, .outline-btn, .gradient-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
+  color: #fff;
+  background: linear-gradient(45deg, #4a90e2, #2c3e50);
   border-radius: 8px;
   font-size: 1rem;
   font-weight: 600;
   transition: all 0.2s;
   cursor: pointer;
   min-width: 140px;
-
+  height: 48px;
+  line-height: 1;
+  text-align: center;
+  
   mat-icon {
-    font-size: 1.2rem;
+    font-size: 20px;
+    height: 20px;
+    width: 20px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    vertical-align: middle;
   }
+}
+
+.ride-btn-centered {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .gradient-btn {
@@ -237,19 +250,21 @@ textarea.form-control {
   }
 }
 
+.error-message {
+  color: #f44336;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+// Responsive design
 @media (max-width: 768px) {
   .booking-container {
     flex-direction: column;
-    align-items: stretch;
   }
 
   .ride-details-card,
   .booking-form {
-    max-width: 100%;
-  }
-
-  .form-row {
-    grid-template-columns: 1fr;
+    width: 100%;
   }
 }
 
@@ -301,25 +316,12 @@ textarea.form-control {
   .outline-btn {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 600;
-    transition: all 0.2s;
-    cursor: pointer;
-    background: #fff;
-    color: #2c3e50;
-    border: 2px solid #e2e8f0;
-
-    &:hover {
-      background: #f8f9fa;
-      border-color: #1976d2;
-      color: #1976d2;
-    }
-
+    justify-content: center;
+    
     mat-icon {
       font-size: 20px;
+      height: 20px;
+      width: 20px;
       margin: 0;
     }
   }
