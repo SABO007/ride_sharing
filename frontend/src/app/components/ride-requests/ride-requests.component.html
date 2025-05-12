@@ -1,42 +1,107 @@
 <div class="ride-requests-container">
-  <h2>Pending Ride Requests</h2>
+  <h2>Ride Requests for Your Rides</h2>
 
   <div *ngIf="loading" class="loading-spinner">
-    <mat-spinner></mat-spinner>
+    <mat-spinner diameter="40"></mat-spinner>
   </div>
 
   <div *ngIf="!loading && pendingRequests.length === 0" class="no-requests">
-    <p>No pending requests</p>
+    <p>No one has requested to join your rides yet</p>
   </div>
 
-  <mat-card *ngFor="let request of pendingRequests" class="request-card">
-    <mat-card-header>
-      <mat-card-title>Ride Request</mat-card-title>
-      <mat-card-subtitle>
-        From: {{request.pickupLocation}} → To: {{request.dropoffLocation}}
-      </mat-card-subtitle>
-    </mat-card-header>
-
-    <mat-card-content>
-      <div class="request-details">
-        <p><strong>Date:</strong> {{request.date}}</p>
-        <p><strong>Time:</strong> {{request.time}}</p>
-        <p><strong>Passengers:</strong> {{request.passengers}}</p>
-        <p *ngIf="request.specialRequests">
-          <strong>Special Requests:</strong> {{request.specialRequests}}
-        </p>
+  <mat-card *ngFor="let request of pendingRequests" class="request-card" [ngClass]="{'pending': request.status === 'pending'}">
+    <!-- Profile Header -->
+    <div class="profile-header">
+      <div class="avatar">{{ getInitial(request.passengerName) }}</div>
+      <div class="user-name">{{ request.passengerName || 'Unknown User' }}</div>
+      
+      <!-- Request Timer -->
+      <div *ngIf="request.status === 'pending' && requestTimers[request.id]" class="request-timer">
+        <mat-icon>timer</mat-icon>
+        <span>{{ requestTimers[request.id] }}</span>
       </div>
-    </mat-card-content>
+    </div>
+    
+    <!-- Route Information -->
+    <div class="route-grid-container">
+      <div class="route-info">
+        <div class="route-point from">
+          <div class="dot"></div>
+          <div class="info">
+            <div class="label">From</div>
+            <div class="location">{{ request.from || 'Not specified' }}</div>
+          </div>
+        </div>
+        
+        <div class="connection-line"></div>
+        
+        <div class="route-point to">
+          <div class="dot"></div>
+          <div class="info">
+            <div class="label">To</div>
+            <div class="location">{{ request.to || 'Not specified' }}</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="price-container">
+        <div class="price-badge">
+          <mat-icon>attach_money</mat-icon>
+          <span class="price-value" *ngIf="request.price !== undefined">{{ request.price }}</span>
+          <span class="price-value" *ngIf="request.price === undefined">-</span>
+        </div>
+      </div>
+    </div>
 
-    <mat-card-actions align="end">
-      <button mat-button color="warn" (click)="handleRequest(request.id, 'rejected')">
+    <mat-divider></mat-divider>
+    
+    <!-- Trip Details -->
+    <div class="trip-details">
+      <div class="detail-item">
+        <mat-icon>calendar_today</mat-icon>
+        <div class="detail-text">
+          <div class="label">Date</div>
+          <div class="value">{{ formatDate(request.date) }}</div>
+        </div>
+      </div>
+      
+      <div class="detail-item">
+        <mat-icon>schedule</mat-icon>
+        <div class="detail-text">
+          <div class="label">Time</div>
+          <div class="value">{{ request.time || 'Not specified' }}</div>
+        </div>
+      </div>
+      
+      <div class="detail-item">
+        <mat-icon>person</mat-icon>
+        <div class="detail-text">
+          <div class="label">Passengers</div>
+          <div class="value">{{ request.passengers || '1' }}</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Special Requests -->
+    <div class="special-requests" *ngIf="request.specialRequests">
+      <div class="note-header">
+        <mat-icon>note</mat-icon>
+        <span>Special Request</span>
+      </div>
+      <p class="note-text">{{ request.specialRequests }}</p>
+    </div>
+    
+    <!-- Action Buttons - ONLY for driver to handle requests -->
+    <div class="action-buttons" *ngIf="isDriver(request)">
+      <button class="reject-button" (click)="handleRequest(request.id, 'rejected')">
         <mat-icon>close</mat-icon>
-        Reject
+        <span>Reject</span>
       </button>
-      <button mat-raised-button color="primary" (click)="handleRequest(request.id, 'approved')">
+      
+      <button class="approve-button" (click)="handleRequest(request.id, 'approved')">
         <mat-icon>check</mat-icon>
-        Approve
+        <span>Approve</span>
       </button>
-    </mat-card-actions>
+    </div>
   </mat-card>
 </div> 

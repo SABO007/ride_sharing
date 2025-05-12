@@ -5,6 +5,7 @@ import { RideFormComponent } from './components/rides/ride-form/ride-form.compon
 import { LoginComponent } from './components/auth/login/login.component';
 import { SignupComponent } from './components/auth/signup/signup.component';
 import { BookNowComponent } from './components/rides/book-now/book-now.component';
+import { RideRequestsComponent } from './components/ride-requests/ride-requests.component';
 import { inject } from '@angular/core';
 import { AuthService } from './services/auth.service';
 import { map } from 'rxjs/operators';
@@ -50,6 +51,12 @@ export const routes: Routes = [
     path: 'rides/book/:id',
     component: BookNowComponent,
     title: 'Book a Ride - GatoRide',
+    canActivate: [() => authGuard()]
+  },
+  {
+    path: 'rides/requests',
+    component: RideRequestsComponent,
+    title: 'Ride Requests - GatoRide',
     canActivate: [() => authGuard()]
   },
   { 

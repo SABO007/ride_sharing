@@ -1,2 +1,4 @@
-1. not allowing current user to book
-2. send notification
+1. notification to user who books
+2. no common notification
+3. load rides without login -> button to load rides -> login/signup
+4. buttons same styling

@@ -408,6 +408,24 @@ func (h *RideHandler) CreateRideRequest(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	// Log the full request details
+	requestJSON, _ := json.MarshalIndent(request, "", "  ")
+	log.Printf("Ride request details:\n%s", string(requestJSON))
+
+	// Check if required fields are provided
+	if request.PassengerName == "" {
+		log.Printf("Warning: PassengerName not provided in request")
+	}
+	if request.ProfilePic == "" {
+		log.Printf("Warning: ProfilePic not provided in request")
+	}
+	if request.From == "" {
+		log.Printf("Warning: From location not provided in request")
+	}
+	if request.To == "" {
+		log.Printf("Warning: To location not provided in request")
+	}
+
 	// Validate number of seats
 	if request.Passengers > ride.Seats {
 		tx.Rollback()
@@ -429,6 +447,18 @@ func (h *RideHandler) CreateRideRequest(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	// Log the saved request details
+	log.Printf("Successfully created ride request for ride %s with the following details:", rideId)
+	log.Printf("PassengerID: %s", request.PassengerID)
+	log.Printf("PassengerName: %s", request.PassengerName)
+	log.Printf("ProfilePic: %s", request.ProfilePic)
+	log.Printf("From: %s", request.From)
+	log.Printf("To: %s", request.To)
+	log.Printf("Date: %s", request.Date)
+	log.Printf("Time: %s", request.Time)
+	log.Printf("Passengers: %d", request.Passengers)
+	log.Printf("Special Requests: %s", request.SpecialRequests)
+
 	// Commit the transaction
 	if err := tx.Commit().Error; err != nil {
 		log.Printf("Error committing transaction: %v", err)
@@ -436,7 +466,6 @@ func (h *RideHandler) CreateRideRequest(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	log.Printf("Successfully created ride request for ride %s", rideId)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(request)
@@ -546,10 +575,12 @@ func (h *RideHandler) HandleRideRequest(w http.ResponseWriter, r *http.Request) 
 
 		// Create the booking
 		booking := models.Booking{
-			RideID:          request.RideID,
-			PassengerID:     request.PassengerID,
-			PickupLocation:  request.PickupLocation,
-			DropoffLocation: request.DropoffLocation,
+			RideID:        request.RideID,
+			PassengerID:   request.PassengerID,
+			PassengerName: request.PassengerName,
+			ProfilePic:    request.ProfilePic,
+			From:          request.From,
+			To:            request.To,
 			Date:            request.Date,
 			Time:            request.Time,
 			Passengers:      request.Passengers,

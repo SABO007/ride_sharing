@@ -12,6 +12,7 @@ export interface User {
   provider: string;
   created_at: string;
   profile_image?: string;
+  profilePic?: string;
 }
 
 export interface AuthResponse {

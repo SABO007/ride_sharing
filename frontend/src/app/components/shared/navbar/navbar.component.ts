@@ -26,6 +26,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   isRideCreator = false;
   private isSSR = false;
   private refreshSubscription?: Subscription;
+  private userId: string | null = null;
 
   constructor(
     private router: Router,
@@ -45,6 +46,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     // Subscribe to current user changes
     this.authService.currentUser$.subscribe(user => {
       if (user) {
+        this.userId = user.id;
         this.isRideCreator = true;
         this.loadPendingRequests();
       }
@@ -69,12 +71,19 @@ export class NavbarComponent implements OnInit, OnDestroy {
     }
 
     this.rideService.getPendingRequests().subscribe(requests => {
+      // Filter requests for this user's rides
       this.pendingRequestsCount = requests.length;
     });
   }
 
   onNotificationClick() {
-    this.router.navigate(['/rides/requests']);
+    // If user has pending driver requests, navigate to driver requests page
+    // Otherwise, navigate to user's ride requests page
+    if (this.isRideCreator && this.pendingRequestsCount > 0) {
+      this.router.navigate(['/rides/requests']);
+    } else {
+      this.router.navigate(['/my-requests']);
+    }
   }
 
   logout() {

@@ -12,6 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { RideService, Ride, Booking } from '../../../services/ride.service';
+import { UserService } from '../../../services/user.service';
 import { AuthService } from '../../../services/auth.service';
 import { take } from 'rxjs/operators';
 
@@ -59,6 +60,7 @@ export class BookNowComponent implements OnInit {
     private router: Router,
     private rideService: RideService,
     private authService: AuthService,
+    private userService: UserService,
     private snackBar: MatSnackBar
   ) {}
 
@@ -159,22 +161,26 @@ export class BookNowComponent implements OnInit {
         return;
       }
 
-      const booking: Booking = {
+      const booking = {
         rideId: this.rideId!,
         passengerId: user.id,
-        pickupLocation: this.bookingDetails.pickupLocation,
-        dropoffLocation: this.bookingDetails.dropoffLocation,
+        passengerName: user.name || 'Unknown User',
+        profilePic: (user as any).profilePic || '',
+        from: this.ride?.from || this.ride?.origin || '',
+        to: this.ride?.to || this.ride?.destination || '',
         date: this.bookingDetails.date,
         time: this.bookingDetails.time,
         passengers: this.bookingDetails.passengers,
-        specialRequests: this.bookingDetails.specialRequests
+        specialRequests: this.bookingDetails.specialRequests || ''
       };
 
+      console.log('Creating ride request with data:', booking);
+
       this.loading = true;
-      this.rideService.bookRide(booking).subscribe({
+      this.rideService.createRideRequest(booking).subscribe({
         next: () => {
           this.loading = false;
-          this.snackBar.open('🎉 Ride request sent to the user!', 'Close', {
+          this.snackBar.open('🎉 Ride request sent to the driver! You will be notified when they respond.', 'Close', {
             duration: 4000,
             horizontalPosition: 'center',
             verticalPosition: 'top',
@@ -183,9 +189,9 @@ export class BookNowComponent implements OnInit {
           this.router.navigate(['/rides']);
         },
         error: (err) => {
-          this.error = 'Failed to book ride. Please try again later.';
+          this.error = 'Failed to send ride request. Please try again later.';
           this.loading = false;
-          console.error('Error booking ride:', err);
+          console.error('Error creating ride request:', err);
           this.snackBar.open(this.error, 'Close', {
             duration: 4000,
             horizontalPosition: 'center',

@@ -6,8 +6,10 @@ type Booking struct {
     ID              string    `json:"id" gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
     RideID          string    `json:"rideId"`
     PassengerID     string    `json:"passengerId"`
-    PickupLocation  string    `json:"pickupLocation"`
-    DropoffLocation string    `json:"dropoffLocation"`
+    PassengerName   string    `json:"passengerName"`
+    ProfilePic      string    `json:"profilePic"`
+    From            string    `json:"from"`
+    To              string    `json:"to"`
     Date            string    `json:"date"`
     Time            string    `json:"time"`
     Passengers      int       `json:"passengers"`

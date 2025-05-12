@@ -1,7 +1,7 @@
 import { Injectable, PLATFORM_ID, Inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError, of } from 'rxjs';
-import { catchError, tap, map, timeout } from 'rxjs/operators';
+import { switchMap, map, catchError, tap, timeout } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { isPlatformServer } from '@angular/common';
 
@@ -42,8 +42,10 @@ export interface CreateRideDto {
 export interface Booking {
   rideId: string;
   passengerId: string;
-  pickupLocation: string;
-  dropoffLocation: string;
+  passengerName?: string;
+  profilePic?: string;
+  from: string;
+  to: string;
   date: string;
   time: string;
   passengers: number;
@@ -63,15 +65,18 @@ export interface RideRequest {
   id: string;
   rideId: string;
   passengerId: string;
-  pickupLocation: string;
-  dropoffLocation: string;
+  passengerName?: string;
+  profilePic?: string;
+  from?: string;
+  to?: string;
   date: string;
   time: string;
   passengers: number;
   specialRequests?: string;
   status: 'pending' | 'approved' | 'rejected';
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
+  price?: number;
 }
 
 @Injectable({
@@ -112,19 +117,11 @@ export class RideService {
   }
 
   private addTimeout<T>(observable: Observable<T>): Observable<T> {
-    // Skip timeout during SSR
-    if (this.isSSR) {
-      return observable;
-    }
-    
     return observable.pipe(
       timeout(this.TIMEOUT_MS),
       catchError(error => {
-        if (error.name === 'TimeoutError') {
-          console.warn('Request timed out');
-          return of([] as any);
-        }
-        throw error;
+        console.error('Request timed out or failed:', error);
+        return throwError(() => new Error('Request timed out. Please try again.'));
       })
     );
   }
@@ -244,32 +241,44 @@ export class RideService {
     );
   }
 
-  getPendingRequests(): Observable<RideRequest[]> {
-    // During SSR, return empty array immediately
-    if (this.isSSR) {
-      console.log('SSR detected, skipping pending requests fetch');
-      return of([]);
-    }
-
-    // Only fetch if we're in the browser
-    if (typeof window !== 'undefined') {
-      return this.addTimeout(
-        this.http.get<RideRequest[]>(`${this.apiUrl}/rides/requests`).pipe(
-          tap(requests => console.log('Received pending requests:', requests)),
-          catchError(error => {
-            console.error('Error fetching pending requests:', error);
-            if (error.status === 0 || error.name === 'TimeoutError') {
-              console.warn('Backend server is not running or request timed out');
-              return of([]); // Return empty array instead of throwing error
-            }
-            return this.handleError(error, []);
-          })
-        )
-      );
-    }
-
-    // Default to empty array for SSR
-    return of([]);
+  getPendingRequests(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/rides/requests`).pipe(
+      tap(requests => {
+        console.log('Original requests from API:', JSON.stringify(requests));
+      }),
+      map(requests => {
+        // Map the API response to match your expected interface
+        return requests.map(request => {
+          // Log each request to see actual structure
+          console.log('Processing request in service:', request);
+          
+          // Return the original request but ensure all required fields exist
+          return {
+            ...request, // Include all original fields
+            // Add fallbacks for essential fields
+            id: request.id,
+            rideId: request.rideId || request.ride_id,
+            passengerId: request.passengerId || request.passenger_id,
+            passengerName: request.passengerName || 'Unknown User',
+            profilePic: request.profilePic || '',
+            // Keep both naming conventions for location fields
+            from: request.from || request.pickupLocation || request.origin || 'Unknown',
+            to: request.to || request.dropoffLocation || request.destination || 'Unknown',
+            pickupLocation: request.pickupLocation || request.from || request.origin || 'Unknown',
+            dropoffLocation: request.dropoffLocation || request.to || request.destination || 'Unknown',
+            date: request.date || new Date().toISOString().split('T')[0],
+            time: request.time || '00:00',
+            passengers: request.passengers || 1,
+            specialRequests: request.specialRequests || request.special_requests || '',
+            status: request.status || 'pending'
+          };
+        });
+      }),
+      catchError(error => {
+        console.error('Error in getPendingRequests:', error);
+        return of([]);
+      })
+    );
   }
 
   handleRideRequest(requestId: string, status: 'approved' | 'rejected'): Observable<void> {
@@ -294,6 +303,86 @@ export class RideService {
       this.http.get<any[]>(`${this.apiUrl}/rides/requests?${params}`).pipe(
         catchError(error => this.handleError(error, []))
       )
+    );
+  }
+
+  createRideRequest(booking: Booking): Observable<any> {
+    console.log('Creating ride request with data:', booking);
+    return this.http.post(`${this.apiUrl}/rides/${booking.rideId}/request`, booking).pipe(
+      catchError(error => this.handleError(error, null))
+    );
+  }
+
+  getPendingRequestsForUser(userId: string): Observable<RideRequest[]> {
+    if (this.isSSR) {
+      return of([]);
+    }
+
+    return this.http.get<RideRequest[]>(`${this.apiUrl}/rides/requests`).pipe(
+      map(requests => requests.filter(request => request.passengerId === userId)),
+      catchError(error => this.handleError(error, []))
+    );
+  }
+
+  getPendingRequestsForDriverRides(driverId: string): Observable<RideRequest[]> {
+    if (this.isSSR) {
+      return of([]);
+    }
+
+    // First, get all driver's rides
+    return this.http.get<Ride[]>(`${this.apiUrl}/rides`).pipe(
+      switchMap(rides => {
+        // Filter rides by driver
+        const driverRides = rides.filter(ride => ride.driver === driverId);
+        
+        if (driverRides.length === 0) {
+          return of([]);
+        }
+        
+        // Extract the ride IDs
+        const driverRideIds = driverRides.map(ride => ride.id);
+        
+        // Now get all pending requests
+        return this.http.get<RideRequest[]>(`${this.apiUrl}/rides/requests`).pipe(
+          map(requests => {
+            // Filter requests for this driver's rides
+            return requests.filter(
+              request => driverRideIds.includes(request.rideId) && request.status === 'pending'
+            );
+          })
+        );
+      }),
+      catchError(error => this.handleError(error, []))
+    );
+  }
+
+  getPendingRequestsForDrivers(driverId: string): Observable<RideRequest[]> {
+    if (this.isSSR) {
+      return of([]);
+    }
+
+    // Get all pending requests
+    return this.http.get<RideRequest[]>(`${this.apiUrl}/rides/requests`).pipe(
+      // Get all rides to determine which ones belong to this driver
+      switchMap(requests => {
+        return this.http.get<Ride[]>(`${this.apiUrl}/rides`).pipe(
+          map(rides => {
+            // Filter for rides owned by this driver
+            const driverRideIds = rides
+              .filter(ride => ride.driver === driverId)
+              .map(ride => ride.id);
+
+            console.log('Driver ride IDs:', driverRideIds);
+            
+            // Filter requests that are for this driver's rides
+            return requests.filter(request => 
+              driverRideIds.includes(request.rideId) && 
+              request.status === 'pending'
+            );
+          })
+        );
+      }),
+      catchError(error => this.handleError(error, []))
     );
   }
 }
