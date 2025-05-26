@@ -64,6 +64,9 @@ export class RideRequestsComponent implements OnInit, OnDestroy {
         }
         
         this.loadAllRequests();
+        
+        // Check for stored notifications (new addition)
+        this.checkStoredNotifications();
       }
     });
     
@@ -136,7 +139,23 @@ export class RideRequestsComponent implements OnInit, OnDestroy {
           const prevStatus = this.previousRequestStatuses[request.id];
           
           if (prevStatus && prevStatus === 'pending' && request.status === 'approved') {
+            // Show notification immediately
             this.showRideApprovedNotification(request);
+            
+            // Also store it for persistence
+            const notification = {
+              type: 'ride_approved',
+              requestId: request.id,
+              from: request.from,
+              to: request.to,
+              timestamp: new Date().toISOString(),
+              seen: true // Already shown to the user
+            };
+            
+            // Get existing notifications or create empty array
+            const existingNotifications = JSON.parse(localStorage.getItem('ride_notifications') || '[]');
+            existingNotifications.push(notification);
+            localStorage.setItem('ride_notifications', JSON.stringify(existingNotifications));
           }
           
           this.previousRequestStatuses[request.id] = request.status;
@@ -156,10 +175,10 @@ export class RideRequestsComponent implements OnInit, OnDestroy {
       `🎉 Great news! Your ride request from ${request.from} to ${request.to} has been approved!`, 
       'View Details', 
       {
-        duration: 10000,
+        duration: 5000,
         horizontalPosition: 'center',
         verticalPosition: 'top',
-        panelClass: ['success-snackbar']
+        panelClass: ['custom-snackbar', 'ride-approved-notification']
       }
     ).onAction().subscribe(() => {
       // Switch to the My Requests tab
@@ -263,19 +282,71 @@ export class RideRequestsComponent implements OnInit, OnDestroy {
 
   handleRequest(requestId: string, status: 'approved' | 'rejected') {
     this.loading = true;
+    
+    // Find the request to get passenger details
+    const request = this.rideRequests.find(req => req.id === requestId);
+    
     this.rideService.handleRideRequest(requestId, status).subscribe({
       next: () => {
         this.loading = false;
-        this.snackBar.open(`Request ${status} successfully`, 'Close', {
-          duration: 3000
-        });
+        
+        // Show appropriate notification based on action
+        if (status === 'approved') {
+          // Immediately store a notification in localStorage to ensure it persists
+          if (request) {
+            // Store approval data to show a notification next time the user opens the app
+            const notification = {
+              type: 'ride_approved',
+              requestId: requestId,
+              from: request.from,
+              to: request.to,
+              timestamp: new Date().toISOString(),
+              seen: false
+            };
+            
+            // Get existing notifications or create empty array
+            const existingNotifications = JSON.parse(localStorage.getItem('ride_notifications') || '[]');
+            existingNotifications.push(notification);
+            localStorage.setItem('ride_notifications', JSON.stringify(existingNotifications));
+          }
+          
+          // Show notification to the driver
+          this.snackBar.open(
+            `🎉 You've approved the ride request! The passenger will be notified.`, 
+            'View Details', 
+            {
+              duration: 5000,
+              horizontalPosition: 'center',
+              verticalPosition: 'top',
+              panelClass: ['custom-snackbar', 'driver-approved-notification']
+            }
+          ).onAction().subscribe(() => {
+            // Refresh the list and switch to the Driver Requests tab
+            this.activeTabIndex = 1;
+            this.loadAllRequests();
+          });
+        } else {
+          // Show rejection notification
+          this.snackBar.open(
+            `❌ You've rejected the ride request from ${request?.passengerName || 'passenger'}.`,
+            'Close', 
+            {
+              duration: 4000,
+              horizontalPosition: 'center',
+              verticalPosition: 'top',
+              panelClass: ['error-snackbar']
+            }
+          );
+        }
+        
         this.loadAllRequests();
       },
       error: (error) => {
         console.error(`Error ${status} request:`, error);
         this.loading = false;
         this.snackBar.open(`Failed to ${status} request`, 'Close', {
-          duration: 3000
+          duration: 3000,
+          panelClass: ['error-snackbar']
         });
       }
     });
@@ -295,5 +366,36 @@ export class RideRequestsComponent implements OnInit, OnDestroy {
 
   onTabChange(event: any) {
     this.activeTabIndex = event.index;
+  }
+
+  // Add this new method to check for stored notifications
+  checkStoredNotifications() {
+    try {
+      const notifications = JSON.parse(localStorage.getItem('ride_notifications') || '[]');
+      
+      if (notifications.length > 0) {
+        // Process unseen notifications
+        const unseenNotifications = notifications.filter((n: any) => !n.seen);
+        
+        // Show notifications for approved rides
+        unseenNotifications.forEach((notification: any) => {
+          if (notification.type === 'ride_approved') {
+            this.showRideApprovedNotification({
+              id: notification.requestId,
+              from: notification.from,
+              to: notification.to
+            } as RideRequest);
+            
+            // Mark as seen
+            notification.seen = true;
+          }
+        });
+        
+        // Update localStorage with seen status
+        localStorage.setItem('ride_notifications', JSON.stringify(notifications));
+      }
+    } catch (error) {
+      console.error('Error processing stored notifications:', error);
+    }
   }
 }
