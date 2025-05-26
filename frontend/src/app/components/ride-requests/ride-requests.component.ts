@@ -8,9 +8,10 @@ import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatTabsModule } from '@angular/material/tabs';
 import { RideService, RideRequest } from '../../services/ride.service';
 import { AuthService } from '../../services/auth.service';
-import { interval, Subscription } from 'rxjs';
+import { interval, Subscription, forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-ride-requests',
@@ -26,15 +27,22 @@ import { interval, Subscription } from 'rxjs';
     MatSnackBarModule,
     MatBadgeModule,
     MatDividerModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatTabsModule
   ]
 })
 export class RideRequestsComponent implements OnInit, OnDestroy {
-  pendingRequests: RideRequest[] = [];
+  allRequests: RideRequest[] = [];
+  myRequests: RideRequest[] = [];
+  rideRequests: RideRequest[] = [];
+  activeTabIndex = 0;
   loading = false;
   timerSubscription: Subscription | null = null;
+  statusCheckSubscription: Subscription | null = null;
   requestTimers: { [requestId: string]: string } = {};
   currentUserId: string | null = null;
+  previousRequestStatuses: { [requestId: string]: string } = {};
+  hasNewApprovedRequests = false;
 
   constructor(
     private rideService: RideService,
@@ -43,17 +51,30 @@ export class RideRequestsComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    // First get the current user
     this.authService.currentUser$.subscribe(user => {
       if (user) {
         this.currentUserId = user.id;
-        this.loadPendingRequestsForDrivers();
+        
+        // Check URL to determine which tab to activate by default
+        const path = window.location.pathname;
+        if (path.includes('my-requests')) {
+          this.activeTabIndex = 0; // My Requests tab
+        } else {
+          this.activeTabIndex = 1; // Ride Requests tab
+        }
+        
+        this.loadAllRequests();
       }
     });
     
-    // Update timers every second
     this.timerSubscription = interval(1000).subscribe(() => {
       this.updateRequestTimers();
+    });
+
+    this.statusCheckSubscription = interval(10000).subscribe(() => {
+      if (this.currentUserId) {
+        this.checkForStatusChanges();
+      }
     });
   }
   
@@ -61,10 +82,97 @@ export class RideRequestsComponent implements OnInit, OnDestroy {
     if (this.timerSubscription) {
       this.timerSubscription.unsubscribe();
     }
+    if (this.statusCheckSubscription) {
+      this.statusCheckSubscription.unsubscribe();
+    }
+  }
+
+  loadAllRequests() {
+    if (!this.currentUserId) {
+      this.snackBar.open('User not authenticated', 'Close', {
+        duration: 3000
+      });
+      return;
+    }
+    
+    this.loading = true;
+    
+    // Load both types of requests
+    forkJoin({
+      myRequests: this.rideService.getPendingRequestsForUser(this.currentUserId),
+      rideRequests: this.rideService.getPendingRequestsForDrivers(this.currentUserId)
+    }).subscribe({
+      next: (result) => {
+        this.myRequests = result.myRequests;
+        this.rideRequests = result.rideRequests;
+        
+        // Store previous statuses for checking changes
+        this.myRequests.forEach(request => {
+          this.previousRequestStatuses[request.id] = request.status;
+        });
+        
+        // Check if there are any approved requests
+        this.hasNewApprovedRequests = this.myRequests.some(request => request.status === 'approved');
+        
+        // Load price information for all requests
+        this.loadPriceInformation(this.myRequests.concat(this.rideRequests));
+      },
+      error: (error) => {
+        console.error('Error loading ride requests:', error);
+        this.loading = false;
+        this.snackBar.open('Failed to load ride requests', 'Close', {
+          duration: 3000
+        });
+      }
+    });
+  }
+
+  checkForStatusChanges() {
+    if (!this.currentUserId) return;
+    
+    this.rideService.getPendingRequestsForUser(this.currentUserId).subscribe({
+      next: (requests) => {
+        requests.forEach(request => {
+          const prevStatus = this.previousRequestStatuses[request.id];
+          
+          if (prevStatus && prevStatus === 'pending' && request.status === 'approved') {
+            this.showRideApprovedNotification(request);
+          }
+          
+          this.previousRequestStatuses[request.id] = request.status;
+        });
+        
+        // Update the approved requests flag
+        this.hasNewApprovedRequests = requests.some(request => request.status === 'approved');
+      },
+      error: (error) => {
+        console.error('Error checking ride request status changes:', error);
+      }
+    });
+  }
+
+  showRideApprovedNotification(request: RideRequest) {
+    this.snackBar.open(
+      `🎉 Great news! Your ride request from ${request.from} to ${request.to} has been approved!`, 
+      'View Details', 
+      {
+        duration: 10000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+        panelClass: ['success-snackbar']
+      }
+    ).onAction().subscribe(() => {
+      // Switch to the My Requests tab
+      this.activeTabIndex = 0;
+      // Refresh the list
+      this.loadAllRequests();
+    });
   }
 
   updateRequestTimers() {
-    for (const request of this.pendingRequests) {
+    // Update timers for all requests
+    const allRequests = this.myRequests.concat(this.rideRequests);
+    for (const request of allRequests) {
       if (request.status === 'pending' && request.createdAt) {
         this.requestTimers[request.id] = this.getTimeElapsed(request.createdAt);
       }
@@ -93,61 +201,9 @@ export class RideRequestsComponent implements OnInit, OnDestroy {
     }
   }
 
-  loadPendingRequestsForDrivers() {
-    if (!this.currentUserId) {
-      this.snackBar.open('User not authenticated', 'Close', {
-        duration: 3000
-      });
-      return;
-    }
-    
-    console.log('Loading pending requests for driver ID:', this.currentUserId);
-    this.loading = true;
-    
-    this.rideService.getPendingRequestsForDrivers(this.currentUserId).subscribe({
-      next: (requests) => {
-        console.log('Received driver ride requests:', requests);
-        this.loadPriceInformation(requests);
-      },
-      error: (error) => {
-        console.error('Error loading driver ride requests:', error);
-        this.loading = false;
-        this.snackBar.open('Failed to load ride requests', 'Close', {
-          duration: 3000
-        });
-      }
-    });
-  }
-
-  loadUserRideRequests() {
-    if (!this.currentUserId) {
-      this.snackBar.open('User not authenticated', 'Close', {
-        duration: 3000
-      });
-      return;
-    }
-    
-    console.log('Loading ride requests for user ID:', this.currentUserId);
-    this.loading = true;
-    
-    this.rideService.getPendingRequestsForUser(this.currentUserId).subscribe({
-      next: (requests) => {
-        console.log('Received user ride requests:', requests);
-        this.loadPriceInformation(requests);
-      },
-      error: (error) => {
-        console.error('Error loading user ride requests:', error);
-        this.loading = false;
-        this.snackBar.open('Failed to load ride requests', 'Close', {
-          duration: 3000
-        });
-      }
-    });
-  }
-
   loadPriceInformation(requests: RideRequest[]) {
     if (requests.length === 0) {
-      this.pendingRequests = requests;
+      this.allRequests = requests;
       this.updateRequestTimers();
       this.loading = false;
       return;
@@ -167,7 +223,7 @@ export class RideRequestsComponent implements OnInit, OnDestroy {
           item.priceLoaded = true;
           
           if (pendingRideInfo.every(item => item.priceLoaded)) {
-            this.pendingRequests = pendingRideInfo.map(item => item.request);
+            this.allRequests = pendingRideInfo.map(item => item.request);
             this.updateRequestTimers();
             this.loading = false;
           }
@@ -177,7 +233,7 @@ export class RideRequestsComponent implements OnInit, OnDestroy {
           item.priceLoaded = true;
           
           if (pendingRideInfo.every(item => item.priceLoaded)) {
-            this.pendingRequests = pendingRideInfo.map(item => item.request);
+            this.allRequests = pendingRideInfo.map(item => item.request);
             this.updateRequestTimers();
             this.loading = false;
           }
@@ -213,7 +269,7 @@ export class RideRequestsComponent implements OnInit, OnDestroy {
         this.snackBar.open(`Request ${status} successfully`, 'Close', {
           duration: 3000
         });
-        this.loadPendingRequestsForDrivers();
+        this.loadAllRequests();
       },
       error: (error) => {
         console.error(`Error ${status} request:`, error);
@@ -232,4 +288,12 @@ export class RideRequestsComponent implements OnInit, OnDestroy {
   isDriver(request: RideRequest): boolean {
     return request.passengerId !== this.currentUserId;
   }
-} 
+
+  isPassenger(request: RideRequest): boolean {
+    return request.passengerId === this.currentUserId;
+  }
+
+  onTabChange(event: any) {
+    this.activeTabIndex = event.index;
+  }
+}

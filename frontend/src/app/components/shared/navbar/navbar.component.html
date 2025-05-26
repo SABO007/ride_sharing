@@ -6,15 +6,16 @@
   <div class="navbar-menu">
     <ng-container *ngIf="authService.isAuthenticated() | async; else notAuthenticated">
       <div class="navbar-end">
-        <!-- Notification section - visible for all authenticated users -->
+        <!-- Common notification icon for all types of notifications -->
         <div class="notification-section">
           <button mat-icon-button 
-                  [matBadge]="pendingRequestsCount" 
-                  [matBadgeHidden]="pendingRequestsCount === 0"
+                  [matBadge]="notificationCount" 
+                  [matBadgeHidden]="notificationCount === 0"
                   matBadgeColor="warn" 
                   (click)="onNotificationClick()"
                   class="notification-button"
-                  [class.has-notifications]="pendingRequestsCount > 0">
+                  [class.has-notifications]="notificationCount > 0"
+                  matTooltip="Ride notifications">
             <mat-icon>notifications</mat-icon>
           </button>
         </div>

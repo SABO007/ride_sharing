@@ -59,6 +59,12 @@ export const routes: Routes = [
     title: 'Ride Requests - GatoRide',
     canActivate: [() => authGuard()]
   },
+  {
+    path: 'my-requests',
+    component: RideRequestsComponent,
+    title: 'My Ride Requests - GatoRide',
+    canActivate: [() => authGuard()]
+  },
   { 
     path: 'login', 
     component: LoginComponent,

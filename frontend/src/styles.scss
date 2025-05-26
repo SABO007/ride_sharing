@@ -363,3 +363,132 @@ h6 {
   letter-spacing: 0.5px;
   box-shadow: 0 4px 16px rgba(25, 118, 210, 0.15);
 }
+
+.success-snackbar {
+  background: linear-gradient(90deg, #38a169 0%, #4fd1c5 100%);
+  color: #fff;
+  font-weight: bold;
+  font-size: 1.1rem;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 16px rgba(56, 161, 105, 0.15);
+}
+
+.notification-banner {
+  margin-bottom: 20px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  opacity: 0;
+  transform: translateY(-10px);
+  
+  &.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  &.success-banner {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    
+    mat-icon {
+      color: #38a169;
+      margin-right: 10px;
+    }
+  }
+}
+
+.status-badge {
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 500;
+  
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    margin-right: 4px;
+  }
+  
+  &.pending {
+    background-color: #fff8e1;
+    color: #f59e0b;
+    
+    mat-icon {
+      color: #f59e0b;
+    }
+  }
+  
+  &.approved {
+    background-color: #e6fffa;
+    color: #38a169;
+    
+    mat-icon {
+      color: #38a169;
+    }
+  }
+  
+  &.rejected {
+    background-color: #fee2e2;
+    color: #ef4444;
+    
+    mat-icon {
+      color: #ef4444;
+    }
+  }
+}
+
+.request-card {
+  &.approved {
+    border-left: 4px solid #38a169;
+  }
+  
+  &.rejected {
+    border-left: 4px solid #ef4444;
+    opacity: 0.8;
+  }
+}
+
+// Add improved styles for the approved notification
+.success-snackbar.ride-approved-notification {
+  background: linear-gradient(135deg, #38a169 0%, #4fd1c5 100%);
+  color: #fff;
+  font-weight: bold;
+  font-size: 1.1rem;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 16px rgba(56, 161, 105, 0.3);
+  border-left: 4px solid #2f855a;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(56, 161, 105, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(56, 161, 105, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(56, 161, 105, 0);
+  }
+}
+
+// Style for the approved notification button in navbar
+.approved-notification.has-notifications {
+  animation: tada 1.5s ease infinite;
+  color: #38a169;
+}
+
+@keyframes tada {
+  0% {transform: scale(1)}
+  10%, 20% {transform: scale(0.9) rotate(-3deg)}
+  30%, 50%, 70%, 90% {transform: scale(1.1) rotate(3deg)}
+  40%, 60%, 80% {transform: scale(1.1) rotate(-3deg)}
+  100% {transform: scale(1) rotate(0)}
+}

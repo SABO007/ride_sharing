@@ -731,4 +731,46 @@ mat-divider {
   &.to .dot {
     background-color: #48bb78;
   }
+}
+
+// Add these styles for the tabs
+::ng-deep .mat-mdc-tab-group {
+  margin-top: 20px;
+}
+
+::ng-deep .mat-mdc-tab-label {
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+::ng-deep .mat-mdc-tab-label-active {
+  opacity: 1;
+}
+
+.notification-banner {
+  margin-bottom: 20px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  opacity: 0;
+  transform: translateY(-10px);
+  
+  &.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  &.success-banner {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    
+    mat-icon {
+      color: #38a169;
+      margin-right: 10px;
+    }
+  }
 } 

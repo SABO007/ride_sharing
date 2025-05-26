@@ -1,15 +1,124 @@
 <div class="ride-requests-container">
-  <h2>Ride Requests for Your Rides</h2>
+  <h2>Ride Notifications</h2>
 
   <div *ngIf="loading" class="loading-spinner">
     <mat-spinner diameter="40"></mat-spinner>
   </div>
 
-  <div *ngIf="!loading && pendingRequests.length === 0" class="no-requests">
-    <p>No one has requested to join your rides yet</p>
+  <div *ngIf="!loading && hasNewApprovedRequests" class="notification-banner success-banner visible">
+    <mat-icon>check_circle</mat-icon>
+    <span>You have approved ride requests!</span>
   </div>
 
-  <mat-card *ngFor="let request of pendingRequests" class="request-card" [ngClass]="{'pending': request.status === 'pending'}">
+  <mat-tab-group [selectedIndex]="activeTabIndex" (selectedIndexChange)="onTabChange($event)" *ngIf="!loading">
+    <!-- My Ride Requests Tab -->
+    <mat-tab label="My Ride Requests" [disabled]="loading">
+      <div *ngIf="myRequests.length === 0" class="no-requests">
+        <p>You have no ride requests yet</p>
+      </div>
+
+      <mat-card *ngFor="let request of myRequests" class="request-card" 
+                [ngClass]="{'pending': request.status === 'pending', 'approved': request.status === 'approved', 'rejected': request.status === 'rejected'}">
+        <!-- Profile Header -->
+        <div class="profile-header">
+          <div class="avatar">{{ getInitial(request.passengerName) }}</div>
+          <div class="user-name">{{ request.passengerName || 'Unknown User' }}</div>
+          
+          <!-- Request Timer -->
+          <div *ngIf="request.status === 'pending' && requestTimers[request.id]" class="request-timer">
+            <mat-icon>timer</mat-icon>
+            <span>{{ requestTimers[request.id] }}</span>
+          </div>
+          
+          <!-- Status Badge -->
+          <div class="status-badge" 
+              [ngClass]="{'pending': request.status === 'pending', 'approved': request.status === 'approved', 'rejected': request.status === 'rejected'}">
+            <mat-icon *ngIf="request.status === 'approved'">check_circle</mat-icon>
+            <mat-icon *ngIf="request.status === 'rejected'">cancel</mat-icon>
+            <mat-icon *ngIf="request.status === 'pending'">schedule</mat-icon>
+            <span>{{ request.status | titlecase }}</span>
+          </div>
+        </div>
+        
+        <!-- Route Information -->
+        <div class="route-grid-container">
+          <div class="route-info">
+            <div class="route-point from">
+              <div class="dot"></div>
+              <div class="info">
+                <div class="label">From</div>
+                <div class="location">{{ request.from || 'Not specified' }}</div>
+              </div>
+            </div>
+            
+            <div class="connection-line"></div>
+            
+            <div class="route-point to">
+              <div class="dot"></div>
+              <div class="info">
+                <div class="label">To</div>
+                <div class="location">{{ request.to || 'Not specified' }}</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="price-container">
+            <div class="price-badge">
+              <mat-icon>attach_money</mat-icon>
+              <span class="price-value" *ngIf="request.price !== undefined">{{ request.price }}</span>
+              <span class="price-value" *ngIf="request.price === undefined">-</span>
+            </div>
+          </div>
+        </div>
+
+        <mat-divider></mat-divider>
+        
+        <!-- Trip Details -->
+        <div class="trip-details">
+          <div class="detail-item">
+            <mat-icon>calendar_today</mat-icon>
+            <div class="detail-text">
+              <div class="label">Date</div>
+              <div class="value">{{ formatDate(request.date) }}</div>
+            </div>
+          </div>
+          
+          <div class="detail-item">
+            <mat-icon>schedule</mat-icon>
+            <div class="detail-text">
+              <div class="label">Time</div>
+              <div class="value">{{ request.time || 'Not specified' }}</div>
+            </div>
+          </div>
+          
+          <div class="detail-item">
+            <mat-icon>person</mat-icon>
+            <div class="detail-text">
+              <div class="label">Passengers</div>
+              <div class="value">{{ request.passengers || '1' }}</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Special Requests -->
+        <div class="special-requests" *ngIf="request.specialRequests">
+          <div class="note-header">
+            <mat-icon>note</mat-icon>
+            <span>Special Request</span>
+          </div>
+          <p class="note-text">{{ request.specialRequests }}</p>
+        </div>
+      </mat-card>
+    </mat-tab>
+    
+    <!-- Ride Requests for Your Rides Tab -->
+    <mat-tab label="Ride Requests for Your Rides" [disabled]="loading">
+      <div *ngIf="rideRequests.length === 0" class="no-requests">
+        <p>No one has requested to join your rides yet</p>
+      </div>
+
+      <mat-card *ngFor="let request of rideRequests" class="request-card" 
+                [ngClass]="{'pending': request.status === 'pending', 'approved': request.status === 'approved', 'rejected': request.status === 'rejected'}">
     <!-- Profile Header -->
     <div class="profile-header">
       <div class="avatar">{{ getInitial(request.passengerName) }}</div>
@@ -91,8 +200,8 @@
       <p class="note-text">{{ request.specialRequests }}</p>
     </div>
     
-    <!-- Action Buttons - ONLY for driver to handle requests -->
-    <div class="action-buttons" *ngIf="isDriver(request)">
+        <!-- Action Buttons -->
+        <div class="action-buttons" *ngIf="request.status === 'pending'">
       <button class="reject-button" (click)="handleRequest(request.id, 'rejected')">
         <mat-icon>close</mat-icon>
         <span>Reject</span>
@@ -104,4 +213,6 @@
       </button>
     </div>
   </mat-card>
+    </mat-tab>
+  </mat-tab-group>
 </div> 
