@@ -4,7 +4,6 @@
 </div>
 
 <div class="form-container wide">
-
   <h2>Offer a Ride</h2>
 
   <form (ngSubmit)="onSubmit()" #rideForm="ngForm">
@@ -12,11 +11,27 @@
       <div class="form-field">
         <label for="from">From</label>
         <input id="from" name="from" type="text" [(ngModel)]="ride.from" [formControl]="fromControl" required placeholder="Enter starting location" />
+        <div *ngIf="fromSuggestions.length > 0" class="suggestions-dropdown">
+          <div
+            class="suggestion-item"
+            *ngFor="let suggestion of fromSuggestions"
+            (click)="selectFromSuggestion(suggestion)">
+            {{ suggestion.description }}
+          </div>
+        </div>
       </div>
 
       <div class="form-field">
         <label for="to">To</label>
         <input id="to" name="to" type="text" [(ngModel)]="ride.to" [formControl]="toControl" required placeholder="Enter destination" />
+        <div *ngIf="toSuggestions.length > 0" class="suggestions-dropdown">
+          <div
+            class="suggestion-item"
+            *ngFor="let suggestion of toSuggestions"
+            (click)="selectToSuggestion(suggestion)">
+            {{ suggestion.description }}
+          </div>
+        </div>
       </div>
     </div>
 

@@ -1,3 +1,30 @@
+.basic-info {
+  background: linear-gradient(90deg, #4fc3f7 0%, #283593 100%);
+  color: #fff;
+  text-align: center;
+  box-shadow: 0 4px 24px rgba(40, 53, 147, 0.15);
+
+  h1 {
+    font-family: 'Montserrat', 'Poppins', Arial, sans-serif;
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    letter-spacing: 1.5px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    color: #fff;
+  }
+
+  .quote {
+    font-family: Arial, sans-serif;
+    font-size: 1.3rem;
+    font-weight: 300;
+    color: black;
+    margin: 0 auto;
+    max-width: 500px;
+    text-shadow: 1px 1px 4px rgba(44, 62, 80, 0.10);
+  }
+}
+
 .hero-features-section {
   background-color: #eaf3f8;
   color: #000;
@@ -114,8 +141,23 @@
   color: #fff;
 }
 
+.how-it-works-section .container h1 {
+  font-family: 'Montserrat', 'Poppins', Arial, sans-serif;
+  font-weight: 800;
+  letter-spacing: 1px;
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: #fff;
+  display: flex;
+  display: flex;
+  justify-content: center;
+
+}
+
+
+
 .step {
-  padding: 0.5rem;
+  padding: 0.2rem;
 }
 
 .circle-icon {
@@ -132,14 +174,17 @@
 }
 
 .step h3 {
-  margin-top: 1rem;
+  margin-top: 0.5rem;
   font-weight: 600;
+  color: black;
+  font-weight: 500;
 }
 
 .step p {
-  color: #e0e0e0;
+  color: black;
   font-size: 0.95rem;
   margin-bottom: 0;
+  font-weight: 500;
 }
 
 
@@ -202,7 +247,7 @@
       z-index: 2;
       max-width: 350px;
       max-height: 160px;
-      padding: 2rem;
+      padding: 0 2rem;
       margin: 0;
       background: rgba(0, 0, 0, 0.35);
       backdrop-filter: blur(8px);
@@ -221,7 +266,7 @@
       .title {
         font-size: 2.5rem;
         font-weight: 800;
-        margin-bottom: 1.5rem;
+        margin-bottom: 0.5rem;
         text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         color: white;
         line-height: 1.2;

@@ -228,4 +228,15 @@ export class BookNowComponent implements OnInit {
   goToRides() {
     this.router.navigate(['/rides']);
   }
+
+  getDisplayLocation(address: string): string {
+    if (!address) return '';
+    if (address.length <= 10) return address;
+    const parts = address.split(',').map(part => part.trim());
+    if (parts.length >= 2) {
+      return parts[parts.length - 3] + ', ' + parts[parts.length - 2];
+    }
+    return address;
+  }
+
 }

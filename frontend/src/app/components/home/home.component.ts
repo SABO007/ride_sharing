@@ -33,7 +33,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       description: 'Discover the charm of the Golden Gate City'
     },
     {
-      image: 'https://images.unsplash.com/photo-1516467508483-a7212febe31a?ixlib=rb-4.0.3',
+      image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80',
       title: 'Las Vegas',
       description: 'Experience the entertainment capital of the world'
     },

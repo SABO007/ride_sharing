@@ -48,7 +48,9 @@
 }
 
 .ride-details-card {
-  background: #fff;
+  background: #bbdefb;
+  box-shadow: 0 8px 24px rgba(21, 101, 192, 0.12);
+  border: 1px solid #bbdefb;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(44,62,80,0.08);
   padding: 1.5rem;
@@ -62,7 +64,7 @@
   align-items: center;
   justify-content: center;
   font-weight: 600;
-  font-size: 1.2rem;
+  font-size: 1rem;
   margin-bottom: 1rem;
   padding: 1rem;
   background: #f8f9fa;
@@ -139,10 +141,11 @@
 
 .booking-form {
   flex: 1;
-  background: white;
+  background: #bbdefb;
+  box-shadow: 0 8px 24px rgba(21, 101, 192, 0.12);
+  border: 1px solid #bbdefb;
   border-radius: 8px;
   padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .form-group {

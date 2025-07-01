@@ -1,6 +1,6 @@
 import { Component, ViewChild, ElementRef, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -13,7 +13,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { RideService } from '../../../services/ride.service';
 import { AuthService } from '../../../services/auth.service';
 import { debounceTime, distinctUntilChanged, switchMap, map } from 'rxjs/operators';
-import { FormControl } from '@angular/forms';
 import { Observable, of } from 'rxjs';
 
 declare var google: any;
@@ -33,7 +32,7 @@ declare var google: any;
     MatDatepickerModule,
     MatNativeDateModule,
     MatIconModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
   ],
   templateUrl: './ride-form.component.html',
   styleUrls: ['./ride-form.component.scss']
@@ -51,18 +50,25 @@ export class RideFormComponent implements AfterViewInit, OnDestroy {
     description: '',
     status: 'available'
   };
+
   loading = false;
   error: string | null = null;
+
   @ViewChild('fromInput') fromInput!: ElementRef;
   @ViewChild('toInput') toInput!: ElementRef;
+
   private fromAutocomplete: any;
   private toAutocomplete: any;
+
   fromSuggestions: any[] = [];
   toSuggestions: any[] = [];
+
   fromControl = new FormControl('');
   toControl = new FormControl('');
+
   fromInputSub: any;
   toInputSub: any;
+
   rideDate: Date | null = null;
   rideTime: string = '';
   today: Date = new Date();
@@ -93,7 +99,7 @@ export class RideFormComponent implements AfterViewInit, OnDestroy {
       distinctUntilChanged(),
       switchMap((value: string | null) => {
         const val = value || '';
-        if (val.length > 1) {
+        if (val.length >= 5) {
           return this.rideService.getPlaceSuggestions(val).pipe(
             map((res: any) => res.predictions ? res.predictions.slice(0, 3) : [])
           );
@@ -109,7 +115,7 @@ export class RideFormComponent implements AfterViewInit, OnDestroy {
       distinctUntilChanged(),
       switchMap((value: string | null) => {
         const val = value || '';
-        if (val.length > 1) {
+        if (val.length >= 5) {
           return this.rideService.getPlaceSuggestions(val).pipe(
             map((res: any) => res.predictions ? res.predictions.slice(0, 3) : [])
           );
@@ -159,23 +165,21 @@ export class RideFormComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
-    // Prevent submission if time is empty
     if (!this.rideTime) {
       this.error = 'Time is required.';
       this.loading = false;
       return;
     }
 
-    // Ensure only date and time are sent, not full ISO string
     if (this.rideDate && this.rideTime) {
-      // Format date as YYYY-MM-DD
       const formattedDate = this.rideDate instanceof Date
         ? this.rideDate.toISOString().split('T')[0]
         : this.rideDate;
-      // Format time as HH:MM:SS
+
       let formattedTime = this.rideTime;
       if (formattedTime.length === 5) formattedTime += ':00';
-      if (formattedTime.length > 8) formattedTime = formattedTime.slice(0, 8); // Remove ms or Z if present
+      if (formattedTime.length > 8) formattedTime = formattedTime.slice(0, 8);
+
       this.ride.date = formattedDate;
       this.ride.time = formattedTime;
     }
@@ -204,9 +208,7 @@ export class RideFormComponent implements AfterViewInit, OnDestroy {
   }
 
   private formatDate(date: Date): string {
-    // Ensure we're working with a Date object
     const d = new Date(date);
-    // Return in ISO format
     return d.toISOString();
   }
-} 
+}

@@ -23,11 +23,28 @@
       <div class="form-row">
         <div class="form-field">
           <label for="from">From</label>
-          <input id="from" name="from" type="text" [(ngModel)]="searchParams.from" required placeholder="Enter starting location" />
+          <input id="from" name="from" type="text" [formControl]="fromControl" required placeholder="Enter starting location" />
+          <div *ngIf="fromSuggestions.length > 0" class="suggestions-dropdown">
+            <div
+              class="suggestion-item"
+              *ngFor="let suggestion of fromSuggestions"
+              (click)="selectFromSuggestion(suggestion)">
+              {{ suggestion.description }}
+            </div>
+          </div>
         </div>
+
         <div class="form-field">
           <label for="to">To</label>
-          <input id="to" name="to" type="text" [(ngModel)]="searchParams.to" required placeholder="Enter destination" />
+          <input id="to" name="to" type="text" [formControl]="toControl" required placeholder="Enter destination" />
+          <div *ngIf="toSuggestions.length > 0" class="suggestions-dropdown">
+            <div
+              class="suggestion-item"
+              *ngFor="let suggestion of toSuggestions"
+              (click)="selectToSuggestion(suggestion)">
+              {{ suggestion.description }}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -119,7 +136,7 @@
     <div class="rides-grid" *ngIf="!loading && !error && filteredRides.length > 0">
       <div class="ride-card" *ngFor="let ride of filteredRides">
         <div class="ride-header">
-          <h3>{{ ride.from }} → {{ ride.to }}</h3>
+          <h3>{{ getDisplayLocation(ride.from || '') }} → {{ getDisplayLocation(ride.to || '') }}</h3>
           <span class="price">${{ ride.price }}</span>
         </div>
 

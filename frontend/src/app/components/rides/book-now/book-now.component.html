@@ -17,9 +17,9 @@
     <div class="ride-details-card">
       <h2 class="card-title">Ride Details</h2>
       <div class="ride-route">
-        <span class="ride-from">{{ ride.origin || ride.from }}</span>
+        <span class="ride-from">{{ getDisplayLocation(ride.origin || ride.from || '') }}</span>
         <mat-icon>arrow_forward</mat-icon>
-        <span class="ride-to">{{ ride.destination || ride.to }}</span>
+        <span class="ride-to">{{ getDisplayLocation(ride.destination || ride.to || '') }}</span>
       </div>
       <hr>
       <div class="ride-details-grid">

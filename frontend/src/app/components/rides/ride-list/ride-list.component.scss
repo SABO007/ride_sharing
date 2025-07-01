@@ -75,12 +75,13 @@
 
 // ===== Form Container =====
 .form-container {
-  max-width: 960px;
+  max-width: 680px;
   margin: auto;
   padding: 2rem;
   border-radius: 16px;
-  background: #ffffff;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+  background: #bbdefb;
+  box-shadow: 0 8px 24px rgba(21, 101, 192, 0.12);
+  border: 1px solid #bbdefb;
 }
 
 h2 {
@@ -203,6 +204,49 @@ h2 {
     vertical-align: middle;
   }
 }
+
+
+// ===== Suggestion Dropdown =====
+.suggestions-dropdown {
+  position: flex;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  max-height: 220px;
+  max-width: 360px;
+  overflow-y: auto;
+  z-index: 1002;
+  padding: 0.25rem 0;
+  margin-top: 2px;
+}
+
+.suggestion-item {
+  padding: 12px 18px;
+  font-size: 1rem;
+  color: #2c3e50;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+  border-bottom: 1px solid #f0f0f0;
+  background: transparent;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover, &:focus {
+    background: #e3f2fd;
+    color: #1565c0;
+  }
+  &:active {
+    background: #bbdefb;
+    color: #0d47a1;
+  }
+}
+
 
 // ===== Ride Card Button Styling =====
 mat-card-actions {
@@ -419,7 +463,7 @@ mat-card-actions {
   right: -400px;
   width: 400px;
   height: 45vh;
-  background: white;
+  background: #bbdefb;
   box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
   transition: right 0.3s ease;
   z-index: 1000;
@@ -677,8 +721,9 @@ mat-card-actions {
 
         .price {
           position: absolute;
-          top: 1.25rem;
-          right: 1.25rem;
+          top: 1rem;
+          right: 1.5rem;
+          bottom: 1rem;
           font-size: 1.4rem;
           font-weight: 700;
           color: white;

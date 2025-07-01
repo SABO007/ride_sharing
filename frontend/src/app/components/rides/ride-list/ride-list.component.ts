@@ -14,6 +14,10 @@ import { MatSliderModule } from '@angular/material/slider';
 import { MatSliderChange } from '@angular/material/slider';
 import { RideService, Ride, SearchParams } from '../../../services/ride.service';
 import { AuthService } from '../../../services/auth.service';
+import { debounceTime, distinctUntilChanged, switchMap, map } from 'rxjs/operators';
+import { of } from 'rxjs';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+
 
 @Component({
   selector: 'app-ride-list',
@@ -30,7 +34,8 @@ import { AuthService } from '../../../services/auth.service';
     MatNativeDateModule,
     MatProgressSpinnerModule,
     MatIconModule,
-    MatSliderModule
+    MatSliderModule,
+    ReactiveFormsModule,
   ],
   templateUrl: './ride-list.component.html',
   styleUrls: ['./ride-list.component.scss']
@@ -45,6 +50,8 @@ export class RideListComponent implements OnInit {
   showFilters: boolean = false;
   today: Date = new Date();
   currentUserId: string | null = null;
+  fromSuggestions: any[] = [];
+  toSuggestions: any[] = [];
 
   searchParams: SearchParams = {
     from: '',
@@ -54,6 +61,9 @@ export class RideListComponent implements OnInit {
     seats: 1,
     maxPrice: undefined
   };
+
+  fromControl = new FormControl('');
+  toControl = new FormControl('');
 
   constructor(
     private rideService: RideService,
@@ -70,6 +80,40 @@ export class RideListComponent implements OnInit {
         this.loadRides();
       }
     });
+
+
+    // Handle autocomplete for 'from'
+    this.fromControl.valueChanges.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap((value: string | null) => {
+        const val = value || '';
+        if (val.length >= 3) {
+          return this.rideService.getPlaceSuggestions(val).pipe(
+            map((res: any) => res.predictions ? res.predictions.slice(0, 3) : [])
+          );
+        } else {
+          return of([]);
+        }
+      })
+    ).subscribe(suggestions => this.fromSuggestions = suggestions);
+
+    // Handle autocomplete for 'to'
+    this.toControl.valueChanges.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap((value: string | null) => {
+        const val = value || '';
+        if (val.length >= 3) {
+          return this.rideService.getPlaceSuggestions(val).pipe(
+            map((res: any) => res.predictions ? res.predictions.slice(0, 3) : [])
+          );
+        } else {
+          return of([]);
+        }
+      })
+    ).subscribe(suggestions => this.toSuggestions = suggestions);
+
     this.seatsValue = this.searchParams.seats || 1;
     this.maxPriceValue = this.searchParams.maxPrice || 1000;
   }
@@ -108,15 +152,18 @@ export class RideListComponent implements OnInit {
     this.loading = true;
     this.error = null;
 
-    if (!this.searchParams.from || !this.searchParams.to) {
+    const from = this.fromControl.value;
+    const to = this.toControl.value;
+
+    if (!from || !to) {
       this.error = 'Please enter both from and to locations';
       this.loading = false;
       return;
     }
 
     const searchParams: SearchParams = {
-      from: this.searchParams.from,
-      to: this.searchParams.to,
+      from,
+      to,
       date: this.searchParams.date,
       time: this.searchParams.time,
       seats: this.seatsValue,
@@ -183,4 +230,27 @@ export class RideListComponent implements OnInit {
       return 'Invalid Date';
     }
   }
+
+  getDisplayLocation(address: string): string {
+    if (!address) return '';
+    if (address.length <= 10) return address;
+    const parts = address.split(',').map(part => part.trim());
+    if (parts.length >= 2) {
+      return parts[parts.length - 3];
+    }
+    return address;
+  }
+
+  selectFromSuggestion(suggestion: any) {
+    this.searchParams.from = suggestion.description;
+    this.fromControl.setValue(suggestion.description, { emitEvent: false });
+    this.fromSuggestions = [];
+  }
+
+  selectToSuggestion(suggestion: any) {
+    this.searchParams.to = suggestion.description;
+    this.toControl.setValue(suggestion.description, { emitEvent: false });
+    this.toSuggestions = [];
+  }
+  
 }

@@ -58,11 +58,17 @@
 
 // Common styles for both tabs
 .request-card {
+  max-width: 450px;   
+  width: 100%;
+  margin: 1.5rem auto;
+  box-shadow: 0 4px 16px rgba(21, 101, 192, 0.10); 
   margin-bottom: 24px;
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  background-color: white;
+  background: #bbdefb;
+  box-shadow: 0 8px 24px rgba(21, 101, 192, 0.12);
+  border: 1px solid #bbdefb;
   border: none;
   transition: all 0.3s ease;
   
